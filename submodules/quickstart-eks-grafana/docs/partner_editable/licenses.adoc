@@ -1,0 +1,1 @@
+Grafana is an open source project licensed under the Apache 2.0 license.

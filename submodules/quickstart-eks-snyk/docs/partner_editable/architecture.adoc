@@ -1,0 +1,4 @@
+
+* A Kubernetes namespace for Snyk.
+* A Kubernetes secret that contains a Snyk integration ID and Docker configuration file.
+* A Snyk monitor pod.

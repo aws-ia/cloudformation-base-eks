@@ -1,0 +1,9 @@
+
+.Snyk monitor for EKS configuration
+[width="100%",cols="16%,11%,73%",options="header",]
+|===
+|Parameter label (name) |Default value|Description|EKS cluster name
+(`KubeClusterName`)|`**__Requires input__**`|Name of the EKS cluster to deploy snyk into.|Snyk integration ID
+(`SnykIntegrationId`)|`**__Requires input__**`|Snyk kubernetes integration ID. Must be obtained from the Snyk console. For more information see https://support.snyk.io/hc/en-us/articles/360003916158-Install-the-Snyk-controller-with-Helm .|Namespace
+(`Namespace`)|`snyk-monitor`|[Optional] Kubernetes namespace to deploy the Snyk controller into.
+|===

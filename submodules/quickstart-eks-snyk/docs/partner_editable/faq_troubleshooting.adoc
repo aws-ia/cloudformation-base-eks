@@ -1,0 +1,13 @@
+== FAQ
+*Q.* I encountered a *CREATE_FAILED* error when I launched the Quick Start.
+
+*A.* If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with *Rollback on failure* set to *Disabled*. (This setting is under *Advanced* in the AWS CloudFormation console, *Options* page.) With this setting, the stack’s state is retained and the workload remains running so you can troubleshoot the issue.
+
+WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for the stack. Ensure to delete the stack when you finish troubleshooting.
+
+== Troubleshooting
+For general EKS troubleshooting steps, see https://aws-quickstart.github.io/quickstart-amazon-eks/[Amazon EKS on the AWS Cloud^].
+
+For Snyk-specific troubleshooting, see the https://support.snyk.io/hc/en-us/articles/360003916138-Kubernetes-integration-overview[Kubernetes integration overview^].
+
+For troubleshooting AWS CloudFormation stacks, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation^].

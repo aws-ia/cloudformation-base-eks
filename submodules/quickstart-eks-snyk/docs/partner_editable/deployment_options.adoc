@@ -1,0 +1,11 @@
+[cols=3*]
+|===
+^|https://fwd.aws/6MkEA[Deploy into a new VPC and new EKS cluster^]
+^|https://fwd.aws/Ewmdr[Deploy into a new EKS cluster in an existing VPC^]
+^|https://fwd.aws/ENbVj[Deploy into an existing EKS cluster^]
+
+^|https://fwd.aws/DgqPB[View template^]
+^|https://fwd.aws/mbD5g[View template^]
+^|https://fwd.aws/znAVA[View template^]
+|===
+New cluster deployments take about 1.5 hours to complete. Existing cluster deployments take about 10 minutes.

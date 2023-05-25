@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+._*
+
+# our logs
+rpdk.log
+
+#compiled file
+bin/
+
+#vender
+vender/
+tests/
+kube.sh
+go.sum
+*.zip
+coverage.out
+.editorconfig

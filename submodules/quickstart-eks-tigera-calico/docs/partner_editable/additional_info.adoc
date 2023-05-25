@@ -1,0 +1,37 @@
+// Add steps as necessary for accessing the software, post-configuration, and testing. Don’t include full usage instructions for your software, but add links to your product documentation for that information.
+//Should any sections not be applicable, remove them
+
+== Test the deployment
+
+Once installed, run the following command to verify that everything is working:
+
+```
+kubectl get tigerastatus
+```
+
+A successful installation has a status of *Available* with *Degraded* and *Progressing* marked as *False*:
+
+```
+NAME     AVAILABLE   PROGRESSING   DEGRADED   SINCE
+calico   True        False         False      1m16s
+```
+
+== Post-deployment steps
+
+{partner-product-short-name} is now ready to use. To get started, see https://docs.projectcalico.org/security/kubernetes-network-policy[Get started with Kubernetes network policy^].
+
+To enable additional features, see https://bit.ly/3jHVKCi[Calico Enterprise Features^] on the Tigera website. Features that can be enabled include the following:
+
+* Hierarchical network policy
+* FQDN/DNS-based network policy
+* Rich graphical user interface
+* RBAC controls with audit trail and continuous compliance
+
+NOTE: For a complete list of enterprise features for {partner-product-short-name}, see the https://docs.projectcalico.org/calico-enterprise/[Calico Enterprise documentation^].
+
+
+== Other useful information for {partner-product-short-name}
+
+* https://docs.projectcalico.org/security/adopt-zero-trust[Adopt a zero-trust network model for security^]
+* https://docs.projectcalico.org/security/kubernetes-network-policy[Get started with Kubernetes network policy^]
+* https://docs.projectcalico.org/security/calico-network-policy[Get started with Calico network policy^]

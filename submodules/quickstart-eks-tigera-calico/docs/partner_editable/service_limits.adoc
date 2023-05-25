@@ -1,0 +1,10 @@
+[cols=",,",options="header",]
+|===
+|Resource |Default quota |This deployment uses (default configuration)
+|VPCs |5 per AWS Region |1
+|VPC security groups |300 per account |3
+|IAM roles |1,000 per account |9
+|Auto Scaling groups |200 per Region |2
+|t2.medium instances |20 per Region |3
+|t2.micro instances |20 per Region |1
+|===

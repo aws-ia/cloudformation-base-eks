@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploys the Grafana Helm chart into an existing Kubernetes cluster. (qs-1qde65hno)
+Metadata:
+  LintSpellExclude:
+    - grafana
+  QuickStartDocumentation:
+    EntrypointName: Launch into an existing Amazon EKS cluster
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Grafana for Amazon EKS configuration
+        Parameters:
+          - KubeClusterName
+          - Namespace
+          - PrometheusURL
+          - OverrideValues
+    ParameterLabels:
+      KubeClusterName:
+        default: Amazon EKS cluster name
+      OverrideValues:
+        default: Override values
+      Namespace:
+        default: Namespace
+      PrometheusURL:
+        default: Prometheus URL
+Parameters:
+  KubeClusterName:
+    Type: String
+    Description: Name of the Amazon EKS cluster to deploy Grafana into.
+  OverrideValues:
+    Type: String
+    Description: (Optional) URI to a file containing custom values to pass to the Helm install. Can be `http(s)://` or `s3://`.
+    Default: ''
+  Namespace:
+    Type: String
+    Default: grafana
+    Description: (Optional) Kubernetes namespace to deploy Grafana into.
+  PrometheusURL:
+    Type: String
+    Default: http://prometheus-server.prometheus.svc.cluster.local
+    Description: (Optional) URL for Prometheus. Defaults to the in-cluster Prometheus deployed into the Prometheus namespace.
+Conditions:
+  SupplyOverrides: !Not [!Equals [!Ref OverrideValues, '']]
+Resources:
+  GrafanaNamespace:
+    Type: AWSQS::Kubernetes::Resource
+    Properties:
+      ClusterName: !Ref KubeClusterName
+      Namespace: kube-system
+      Manifest: !Sub |
+        kind: Namespace
+        apiVersion: v1
+        metadata:
+          name: ${Namespace}
+  GrafanaHelmChart:
+    Type: AWSQS::Kubernetes::Helm
+    DependsOn: GrafanaNamespace
+    Properties:
+      ClusterID: !Ref KubeClusterName
+      Namespace: !Ref Namespace
+      Repository: https://grafana.github.io/helm-charts
+      Chart: grafana/grafana
+      Name: grafana
+      ValueOverrideURL: !If [SupplyOverrides, !Ref OverrideValues, !Ref AWS::NoValue]
+      ValueYaml: !Sub |
+        persistence:
+          type: pvc
+          enabled: true
+          storageClassName: gp2
+        service:
+          type: LoadBalancer
+        datasources:
+          datasources.yaml:
+            apiVersion: 1
+            datasources:
+            - name: Prometheus
+              type: prometheus
+              url: ${PrometheusURL}
+              access: proxy
+              isDefault: true
+        dashboardProviders:
+          dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+            - name: 'default'
+              orgId: 1
+              folder: ''
+              type: file
+              disableDeletion: false
+              editable: true
+              options:
+                path: /var/lib/grafana/dashboards/default
+        dashboards:
+          default:
+            node-exporter:
+              gnetId: 1860
+              revision: 21
+              datasource: Prometheus
+            cluster:
+              gnetId: 8685
+              revision: 1
+              datasource: Prometheus
+Outputs:
+  GrafanaReleaseName:
+    Value: !Ref GrafanaHelmChart

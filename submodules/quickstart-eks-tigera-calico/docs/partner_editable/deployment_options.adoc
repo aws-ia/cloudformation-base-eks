@@ -1,0 +1,7 @@
+// There are generally two deployment options. If additional are required, add them here
+
+This Quick Start provides one deployment option:
+
+* *Deploy {partner-product-name} into an existing EKS cluster*. This option provisions {partner-product-name} in your existing AWS infrastructure.
+
+This Quick Start lets you configure the EKS cluster in which {partner-product-name} is installed, as discussed later in this guide.

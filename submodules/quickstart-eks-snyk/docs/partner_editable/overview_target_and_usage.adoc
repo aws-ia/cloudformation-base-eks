@@ -1,0 +1,3 @@
+Snyk controller for Amazon Elastic Kubernetes Service (Amazon EKS) lets you import and test your running EKS workloads to identify vulnerabilities in associated images and configurations that might make workloads less secure. As new images deploy and workload configurations change, Snyk continually monitors workloads to identify security issues.
+
+This Quick Start is for developers, DevOps, security teams, and roles within an organization for building, deploying, and maintaining Amazon EKS applications.

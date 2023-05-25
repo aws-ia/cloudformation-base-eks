@@ -1,0 +1,32 @@
+# TaskCat
+taskcat_outputs/
+.taskcat/
+.taskcat_overrides.yml
+functions/packages/
+*.zip
+output/
+
+# Docs
+## Docs 2.1+
+# docs/
+## Docs 2.0
+docs/generated/
+index.html
+prod_example.html
+
+# Python
+__pycache__
+.python-version
+venv/
+.venv/
+env/
+
+# asdf
+.tool-versions
+
+# macOS
+.DS_Store
+
+# IDE workspace settings
+.vscode/
+.idea/

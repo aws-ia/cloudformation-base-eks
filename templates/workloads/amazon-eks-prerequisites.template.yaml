@@ -1,0 +1,85 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Checks for Shared resources required by all Amazon EKS Quick Start stacks
+  (qs-1tsp403dd).
+Metadata:
+  cfn-lint: { config: { ignore_checks: [W9002, W9003, W9004, W9006] } }
+Parameters:
+  Version:
+    Type: String
+    Default: 1.0.0
+  QSS3BucketName:
+    Type: String
+    AllowedPattern: ^[0-9a-z]+([0-9a-z-]*[0-9a-z])*$
+  QSS3BucketRegion:
+    Type: String
+  QSS3KeyPrefix:
+    Type: String
+    AllowedPattern: ^[0-9a-zA-Z-/.]*$
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
+Resources:
+  PrerequisitesRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource, EIAMPolicyActionWildcard]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              This role is used to launch cfn stacks containing iam roles and
+              lambda functions. At this time it is unclear which permissions
+              these resource types require.
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: deploy-prereqs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:*
+                  - iam:*
+                  - s3:*
+                  - cloudformation:DescribeStacks
+                  - cloudformation:ListStacks
+                  - cloudformation:CreateStack
+                  - cloudformation:UpdateStack
+                  - ec2:DescribeRegions
+                Resource: '*'
+  PrerequisitesFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: >-
+          Checks whether the per-region and per-account EKS Quick Start stacks
+          are present and up to date.
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !GetAtt PrerequisitesRole.Arn
+      Timeout: 900
+      Code:
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/Prerequisites/lambda.zip
+  Prerequisites:
+    Type: Custom::Prerequisites
+    Properties:
+      ServiceToken: !GetAtt PrerequisitesFunction.Arn
+      AccountTemplateUri: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks-per-account-resources.template.yaml
+        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      RegionalTemplateUri: !Sub
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks-per-region-resources.template.yaml
+        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
+          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Version: !Ref Version
+      Key: eks-quickstart

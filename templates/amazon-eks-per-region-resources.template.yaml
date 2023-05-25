@@ -1,0 +1,580 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Shared resources required by all Amazon EKS Quick Start stacks in this region
+  (qs-1r0qgtna3).
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Quick Start configuration
+        Parameters:
+          - RandomStr
+          - QSS3BucketName
+          - QSS3KeyPrefix
+    ParameterLabels:
+      QSS3BucketName:
+        default: Quick Start S3 bucket name
+      QSS3KeyPrefix:
+        default: Quick Start S3 key prefix
+      RandomStr:
+        default: Random string
+Parameters:
+  QSS3BucketName:
+    Type: String
+    Description: >-
+      S3 bucket name for the Quick Start assets. This string can include
+      numbers, lowercase letters, and hyphens (-). It cannot start or end with
+      a hyphen (-).
+    AllowedPattern: ^[0-9a-z]+([0-9a-z-]*[0-9a-z])*$
+    ConstraintDescription: >-
+      Quick Start bucket name can include numbers, lowercase letters, and
+      hyphens (-). It cannot start or end with a hyphen (-).
+    Default: aws-quickstart
+  QSS3KeyPrefix:
+    Type: String
+    Description: >-
+      S3 key prefix for the Quick Start assets. Quick Start key prefix can
+      include numbers, lowercase letters, uppercase letters, hyphens (-), dots
+      (.), and forward slash (/).
+    AllowedPattern: ^[0-9a-zA-Z-/.]*$
+    ConstraintDescription: >-
+      Quick Start key prefix can include numbers, lowercase letters, uppercase
+      letters, hyphens (-), dots(.) and forward slash (/).
+    Default: quickstart-amazon-eks/
+  RandomStr:
+    Type: String
+    Description: >-
+      Enter a random string here when performing stack updates. Doing this
+      ensures that all lambda function and resource type source code is updated
+      from s3.
+    Default: ''
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
+Resources:
+  LambdaZipsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+  CopyZipsRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles: [eks-quickstart-CopyZips]
+      PolicyName: !Sub eks-quickstart-lambda-zip-bucket-access-${AWS::Region}
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: !Sub ${LambdaZipsBucket.Arn}/*
+  DeleteBucketContentsRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      Roles: [eks-quickstart-DeleteBucketContents]
+      PolicyName: !Sub eks-quickstart-delete-bucket-contents-${AWS::Region}
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObjectAcl
+              - s3:GetObject
+              - s3:DeleteObjectVersion
+              - s3:ListBucketVersions
+              - s3:GetObjectVersionAcl
+              - s3:ListBucket
+              - s3:GetBucketVersioning
+              - s3:DeleteObject
+              - s3:GetBucketAcl
+              - s3:GetBucketLocation
+              - s3:GetObjectVersion
+            Resource:
+              - !Sub ${LambdaZipsBucket.Arn}/*
+              - !GetAtt LambdaZipsBucket.Arn
+  CopyZipsFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: CopyZipsRolePolicy
+    Properties:
+      FunctionName: eks-quickstart-CopyZips
+      Description: Copies objects from a source S3 bucket to a destination.
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CopyZips
+      Timeout: 900
+      Code:
+        S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CopyZips/lambda.zip
+  CopyZips:
+    Type: Custom::CopyZips
+    Properties:
+      ServiceToken: !GetAtt CopyZipsFunction.Arn
+      DestBucket: !Ref LambdaZipsBucket
+      SourceBucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+      Prefix: !Ref QSS3KeyPrefix
+      Version: 1.0.0
+      RandomStr: !Ref RandomStr
+      Objects:
+        - functions/packages/AwsCliLayer/lambda.zip
+        - functions/packages/CleanupLambdas/lambda.zip
+        - functions/packages/CleanupLoadBalancers/lambda.zip
+        - functions/packages/CleanupSecurityGroupDependencies/lambda.zip
+        - functions/packages/CloudFormationVPCRoleCreation/lambda.zip
+        - functions/packages/CrHelperLayer/lambda.zip
+        - functions/packages/DeleteBucketContents/lambda.zip
+        - functions/packages/EksClusterResource/awsqs-eks-cluster.zip
+        - functions/packages/FargateProfile/lambda.zip
+        - functions/packages/GenerateClusterName/lambda.zip
+        - functions/packages/GetCallerArn/lambda.zip
+        - functions/packages/HelmReleaseResource/awsqs-kubernetes-helm.zip
+        - functions/packages/KubectlLayer/lambda.zip
+        - functions/packages/KubeGet/lambda.zip
+        - functions/packages/KubeManifest/lambda.zip
+        - functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip
+        - functions/packages/kubernetesResources/awsqs_kubernetes_apply_vpc.zip
+        - functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
+        - functions/packages/kubernetesResources/awsqs_kubernetes_get_vpc.zip
+        - functions/packages/NodeSG/lambda.zip
+        - functions/packages/QuickStartParameterResolver/lambda.zip
+        - functions/packages/RegisterType/lambda.zip
+        - functions/packages/ResourceReader/lambda.zip
+  ArtifactCopyPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LambdaZipsBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: Allow CloudFormation to copy artifacts from the bucket
+            Effect: Allow
+            Principal:
+              Service: cloudformation.amazonaws.com
+            Action:
+              - s3:ListBucket
+              - s3:GetObject
+            Resource:
+              - !GetAtt LambdaZipsBucket.Arn
+              - !Sub ${LambdaZipsBucket.Arn}/${QSS3KeyPrefix}functions/packages/EksClusterResource/awsqs-eks-cluster.zip
+              - !Sub ${LambdaZipsBucket.Arn}/${QSS3KeyPrefix}functions/packages/HelmReleaseResource/awsqs-kubernetes-helm.zip
+              - !Sub ${LambdaZipsBucket.Arn}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
+              - !Sub ${LambdaZipsBucket.Arn}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip
+  KubectlLayer:
+    Type: AWS::Lambda::LayerVersion
+    DependsOn: CopyZips
+    Properties:
+      LayerName: eks-quickstart-Kubectl
+      Description: !Sub kubectl layer - ${RandomStr}
+      Content:
+        S3Bucket: !Ref LambdaZipsBucket
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/KubectlLayer/lambda.zip
+  AwsCliLayer:
+    Type: AWS::Lambda::LayerVersion
+    DependsOn: CopyZips
+    Properties:
+      LayerName: eks-quickstart-AwsCli
+      Description: !Sub aws cli layer - ${RandomStr}
+      Content:
+        S3Bucket: !Ref LambdaZipsBucket
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/AwsCliLayer/lambda.zip
+  CrHelperLayer:
+    Type: AWS::Lambda::LayerVersion
+    DependsOn: CopyZips
+    Properties:
+      LayerName: eks-quickstart-CrHelper
+      Description: !Sub crhelper layer - ${RandomStr}
+      CompatibleRuntimes: [python3.7, python3.8, python3.9]
+      Content:
+        S3Bucket: !Ref LambdaZipsBucket
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CrHelperLayer/lambda.zip
+  CleanupLoadBalancersFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-CleanupLoadBalancers
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CleanupLoadBalancers
+      Runtime: python3.9
+      Timeout: 900
+      Layers: [!Ref CrHelperLayer]
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CleanupLoadBalancers/lambda.zip
+  CleanupLambdasFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-CleanupLambdas
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CleanupLambdas
+      Runtime: python3.9
+      Timeout: 900
+      Layers: [!Ref CrHelperLayer]
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CleanupLambdas/lambda.zip
+  GenerateClusterNameFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: CopyZips
+    Properties:
+      FunctionName: eks-quickstart-GenerateClusterName
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-GenerateClusterName
+      Timeout: 900
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/GenerateClusterName/lambda.zip
+  RegisterTypeFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-RegisterType
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-RegisterType
+      Layers: [!Ref CrHelperLayer]
+      Runtime: python3.8
+        # Bumping this requires CloudFormation Registry interop support
+      Timeout: 900
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/RegisterType/lambda.zip
+  RegisterEksClusterType:
+    Type: Custom::RegisterType
+    DependsOn: ArtifactCopyPolicy
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              CloudFormation resource type schema's do not support resource
+              constraints.
+    Properties:
+      ServiceToken: !GetAtt RegisterTypeFunction.Arn
+      Version: 3.1.5
+      RandomStr: !Ref RandomStr
+      TypeName: AWSQS::EKS::Cluster
+      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/EksClusterResource/awsqs-eks-cluster.zip
+      IamPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:GetCallerIdentity
+              - eks:CreateCluster
+              - eks:DeleteCluster
+              - eks:DescribeCluster
+              - eks:ListTagsForResource
+              - eks:UpdateClusterVersion
+              - eks:UpdateClusterConfig
+              - eks:TagResource
+              - eks:UntagResource
+              - iam:PassRole
+              - sts:AssumeRole
+              - lambda:UpdateFunctionConfiguration
+              - lambda:DeleteFunction
+              - lambda:GetFunction
+              - lambda:InvokeFunction
+              - lambda:CreateFunction
+              - lambda:UpdateFunctionCode
+              - ec2:DescribeVpcs
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+              - kms:CreateGrant
+              - kms:DescribeKey
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:DescribeLogGroups
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+              - cloudwatch:ListMetrics
+              - cloudwatch:PutMetricData
+            Resource: '*'
+  RegisterHelmType:
+    Type: Custom::RegisterType
+    DependsOn: ArtifactCopyPolicy
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              CloudFormation resource type schema's do not support resource
+              constraints.
+    Properties:
+      ServiceToken: !GetAtt RegisterTypeFunction.Arn
+      TypeName: AWSQS::Kubernetes::Helm
+      Version: 3.1.2
+      RandomStr: !Ref RandomStr
+      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/HelmReleaseResource/awsqs-kubernetes-helm.zip
+      IamPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue  # required for deploying helm charts into non-EKS kubernetes clusters
+              - kms:Decrypt
+              - eks:DescribeCluster
+              - s3:GetObject
+              - sts:AssumeRole
+              - iam:PassRole  # required for EKS clusters with Public Endpoint disabled
+              - ec2:CreateNetworkInterface  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeNetworkInterfaces  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DeleteNetworkInterface  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeVpcs  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeSubnets  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeRouteTables  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeSecurityGroups  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogGroup  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogStream  # required for EKS clusters with Public Endpoint disabled
+              - logs:PutLogEvents  # required for EKS clusters with Public Endpoint disabled
+              - lambda:UpdateFunctionConfiguration  # required for EKS clusters with Public Endpoint disabled
+              - lambda:DeleteFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:GetFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:InvokeFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:CreateFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:UpdateFunctionCode  # required for EKS clusters with Public Endpoint disabled
+              - cloudformation:ListExports  # required for fetching contract test inputs
+              - ecr:GetAuthorizationToken # required for fetching charts from ECR
+              - ecr:BatchCheckLayerAvailability # required for fetching charts from ECR
+              - ecr:GetDownloadUrlForLayer # required for fetching charts from ECR
+              - ecr:BatchGetImage # required for fetching charts from ECR
+            Resource: '*'
+  RegisterKubeGetType:
+    DependsOn: ArtifactCopyPolicy
+    Type: Custom::RegisterType
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              CloudFormation resource type schema's do not support resource
+              constraints.
+    Properties:
+      ServiceToken: !GetAtt RegisterTypeFunction.Arn
+      TypeName: AWSQS::Kubernetes::Get
+      Version: 3.2.3
+      RandomStr: !Ref RandomStr
+      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
+      IamPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue  # required for deploying helm charts into non-EKS kubernetes clusters
+              - kms:Decrypt
+              - eks:DescribeCluster
+              - s3:GetObject
+              - sts:AssumeRole
+              - sts:GetCallerIdentity
+              - iam:PassRole  # required for EKS clusters with Public Endpoint disabled
+              - ec2:CreateNetworkInterface  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeNetworkInterfaces  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DeleteNetworkInterface  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeVpcs  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeSubnets  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeRouteTables  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeSecurityGroups  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogGroup  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogStream  # required for EKS clusters with Public Endpoint disabled
+              - logs:PutLogEvents  # required for EKS clusters with Public Endpoint disabled
+              - lambda:UpdateFunctionConfiguration  # required for EKS clusters with Public Endpoint disabled
+              - lambda:GetFunctionConfiguration  # required for EKS clusters with Public Endpoint disabled
+              - lambda:DeleteFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:GetFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:InvokeFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:CreateFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:UpdateFunctionCode  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogGroup  # required if this role is also used for Resource type logging
+              - logs:CreateLogStream  # required if this role is also used for Resource type logging
+              - logs:DescribeLogGroups  # required if this role is also used for Resource type logging
+              - logs:DescribeLogStreams  # required if this role is also used for Resource type logging
+              - logs:PutLogEvents  # required if this role is also used for Resource type logging
+              - cloudwatch:ListMetrics  # required if this role is also used for Resource type logging
+              - cloudwatch:PutMetricData  # required if this role is also used for Resource type logging
+              - ssm:PutParameter  # ssm parameters are used by the ::Get resource to track requests
+              - ssm:GetParameter  # ssm parameters are used by the ::Get resource to track requests
+              - ssm:DeleteParameter  # ssm parameters are used by the ::Get resource to track requests
+            Resource: '*'
+  RegisterKubeApplyType:
+    DependsOn: ArtifactCopyPolicy
+    Type: Custom::RegisterType
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              CloudFormation resource type schema's do not support resource
+              constraints.
+    Properties:
+      ServiceToken: !GetAtt RegisterTypeFunction.Arn
+      TypeName: AWSQS::Kubernetes::Resource
+      Version: 3.2.3
+      RandomStr: !Ref RandomStr
+      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip
+      IamPolicy:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - secretsmanager:GetSecretValue  # required for deploying helm charts into non-EKS kubernetes clusters
+              - kms:Decrypt
+              - eks:DescribeCluster
+              - s3:GetObject
+              - sts:AssumeRole
+              - sts:GetCallerIdentity
+              - iam:PassRole  # required for EKS clusters with Public Endpoint disabled
+              - ec2:CreateNetworkInterface  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeNetworkInterfaces  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DeleteNetworkInterface  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeVpcs  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeSubnets  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeRouteTables  # required for EKS clusters with Public Endpoint disabled
+              - ec2:DescribeSecurityGroups  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogGroup  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogStream  # required for EKS clusters with Public Endpoint disabled
+              - logs:PutLogEvents  # required for EKS clusters with Public Endpoint disabled
+              - lambda:UpdateFunctionConfiguration  # required for EKS clusters with Public Endpoint disabled
+              - lambda:GetFunctionConfiguration  # required for EKS clusters with Public Endpoint disabled
+              - lambda:DeleteFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:GetFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:InvokeFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:CreateFunction  # required for EKS clusters with Public Endpoint disabled
+              - lambda:UpdateFunctionCode  # required for EKS clusters with Public Endpoint disabled
+              - logs:CreateLogGroup  # required if this role is also used for Resource type logging
+              - logs:CreateLogStream  # required if this role is also used for Resource type logging
+              - logs:DescribeLogGroups  # required if this role is also used for Resource type logging
+              - logs:DescribeLogStreams  # required if this role is also used for Resource type logging
+              - logs:PutLogEvents  # required if this role is also used for Resource type logging
+              - cloudwatch:ListMetrics  # required if this role is also used for Resource type logging
+              - cloudwatch:PutMetricData  # required if this role is also used for Resource type logging
+            Resource: '*'
+  CleanupSecurityGroupDependenciesFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-CleanupSecurityGroupDependencies
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CleanupSecurityGroupDependencies
+      Layers: [!Ref CrHelperLayer]
+      Runtime: python3.9
+      Timeout: 900
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CleanupSecurityGroupDependencies/lambda.zip
+  DeleteBucketContentsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-DeleteBucketContents
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-DeleteBucketContents
+      Runtime: python3.9
+      Timeout: 900
+      Layers: [!Ref CrHelperLayer]
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/DeleteBucketContents/lambda.zip
+  GetCallerArnFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-GetCallerArn
+      Handler: index.handler
+      MemorySize: 128
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-GetCallerArn
+      Runtime: python3.9
+      Timeout: 900
+      Layers: [!Ref CrHelperLayer]
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/GetCallerArn/lambda.zip
+  NodeSGFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-NodeSG
+      Description: Fetches the Security Group ID for a given EKS Managed Node Group
+      Handler: index.handler
+      Runtime: python3.9
+      Role:  !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-NodeSG
+      Timeout: 900
+      Layers: [!Ref CrHelperLayer]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/NodeSG/lambda.zip
+  FargateProfileFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: eks-quickstart-FargateProfile
+      Handler: index.handler
+      MemorySize: 512
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-FargateProfile
+      Runtime: python3.9
+      Timeout: 900
+      Layers: [!Ref CrHelperLayer]
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/FargateProfile/lambda.zip
+  ResourceReaderFunction:
+    DependsOn: CopyZips
+    Type: AWS::Lambda::Function
+    Properties:
+      MemorySize: 512
+      FunctionName: eks-quickstart-ResourceReader
+      Description: >-
+        Performs an AWS CLI command and returns the json result. Used to get
+        the state of existing resources.
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-ResourceReader
+      Timeout: 900
+      Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/ResourceReader/lambda.zip
+  QuickStartParameterResolverFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: CopyZips
+    Properties:
+      FunctionName: eks-quickstart-QuickStartParameterResolver
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/QuickStartParameterResolver/lambda.zip
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-QuickStartParameterResolver
+      Timeout: 900
+  QuickStartParameterResolverFunctionPermissions:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !GetAtt QuickStartParameterResolverFunction.Arn
+      Principal: cloudformation.amazonaws.com
+  QuickStartParameterResolver:
+    Type: AWS::CloudFormation::Macro
+    Properties:
+      Name: QuickStartParameterResolver
+      Description: !Sub Resolves ssm parameters in templates ${RandomStr}
+      FunctionName: !GetAtt QuickStartParameterResolverFunction.Arn
+  CloudFormationVPCRoleCreationFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: CopyZips
+    Properties:
+      FunctionName: eks-quickstart-CloudFormationVPCRoleCreation
+      Description: >-
+        Creates the CloudFormationVPCRoleCreation if it does not yet exist.
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CloudFormationVPCRoleCreation
+      Timeout: 900
+      Code:
+        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CloudFormationVPCRoleCreation/lambda.zip

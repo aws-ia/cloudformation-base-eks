@@ -1,0 +1,39 @@
+project:
+  name: quickstart-eks-mulesoft-runtime-fabric
+  owner: quickstart-eng@amazon.com
+  lambda_source_path: functions/source
+  lambda_zip_path: functions/packages
+  s3_regional_buckets: True
+  regions:
+    - us-west-2
+    - us-east-1
+    - us-east-2
+    - eu-west-1
+    - eu-west-2
+    - eu-west-3
+    - eu-north-1
+    - eu-central-1
+    - ap-southeast-1
+    - ap-southeast-2
+    - ap-northeast-1
+    - ap-northeast-2
+    - ap-south-1
+tests:
+  mulesoft:
+    parameters:
+      AvailabilityZones: "$[taskcat_genaz_3]"
+      ALBIngressController: Enabled
+      KeyPairName: "$[taskcat_getkeypair]"
+      NodeInstanceFamily: Standard
+      NodeInstanceType: t3.medium
+      NumberOfAZs: 3
+      NumberOfNodes: 3
+      RemoteAccessCidr: "0.0.0.0/0"
+      QSS3BucketName: "$[taskcat_autobucket]"
+      QSS3KeyPrefix: "quickstart-eks-mulesoft-runtime-fabric/"
+      QSS3BucketRegion: "$[taskcat_current_region]"
+      PerAccountSharedResources: "No"
+      PerRegionSharedResources: "No"
+    template: templates/mulesoft-main.template.yaml
+    regions:
+      - us-east-1

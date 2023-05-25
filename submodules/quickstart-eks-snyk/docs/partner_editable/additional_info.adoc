@@ -1,0 +1,14 @@
+== Test the deployment
+
+. Configure the `kubectll` command line utility to connect to your EKS cluster. For more information, see https://docs.aws.amazon.com/eks/latest/userguide/managing-auth.html[Cluster authentication^].
+. Run `kubectl` to get namespaces, and verify that the *snyk-monitor* namespace has an *Active* status.
+. Run `kubectl get pods --namespace snyk-monitor`, and verify that a pod with the *snyk-monitor* prefix has a *Running* status.
+. From the Snyk console, verify that your cluster appears and you can add workloads. For more information, see https://support.snyk.io/hc/en-us/articles/360003947117#UUID-a0526554-0943-3363-6977-7a11f766ede2[Adding Kubernetes workloads for security scanning^].
+
+== Best practices for using {partner-product-short-name} on EKS
+The Snyk controller monitors workloads and provides details about potential vulnerabilities in container images in addition to the security configuration for your deployments. We recommend that your Kubernetes manifests adhere to the workload configuration properties. For more information, see https://support.snyk.io/hc/en-us/articles/360003916178-Viewing-project-details-and-test-results[Viewing project details and test results^].
+
+== Security
+Snyk provides alerts for common misconfigurations. Examples of this include running containers as the root user, not setting application limits for your CPU or memory, and using a writable mounted file system, which allows attackers to compromise your containers by writing to the disk. If your containers are stateless, you don’t need a writable file system.
+
+At a low level, Linux controls what processes are allowed within your containers, from writing to the disk to communicating over the network. For this reason, ensure that your system's capabilities are defined.

@@ -1,0 +1,14 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  KubeStateMetrics:
+    Type: "AWSQS::Kubernetes::Helm"
+    Properties:
+      ClusterID: my-cluster-name
+      Name: kube-state-metrics
+      Namespace: kube-state-metrics
+      # Uses anonymous pul
+      Chart: oci://<url>/<repo>:<tag>
+      ValueYaml: |
+        prometheus:
+          monitor:
+            enabled: true

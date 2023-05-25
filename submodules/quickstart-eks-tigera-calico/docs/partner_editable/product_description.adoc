@@ -1,0 +1,6 @@
+{partner-product-short-name} is the leading open-source network policy implementation for containers and Kubernetes workloads. {partner-product-short-name} implements the native Kubernetes network policy API in addition to its own rich-network policy model that helps ensure that authorized traffic flows according to native concepts, such as namespaces and labels.
+
+{partner-product-short-name} Enterprise builds on top of the foundation provided by {partner-product-short-name}, providing enterprise security controls, advanced visibility, and troubleshooting for your Kubernetes applications.
+For more information, see https://www.tigera.io/tigera-products/calico-enterprise/?utm_campaign=eksquickstart&utm_medium=web&utm_source=aws[Calico Enterprise Features^].
+
+Both products work seamlessly on Amazon EKS and provide a rich set of cababilities on top of native Amazon VPC pod networking.

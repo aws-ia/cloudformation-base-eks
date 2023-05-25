@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "registers the AWSQS::Kubernetes::Helm resource type"
+Parameters:
+  ExecutionRoleArn:
+    Type: String
+    Description: IAM role ARN for the resource types
+Resources:
+  ResourceVersion:
+    Type: AWS::CloudFormation::ResourceVersion
+    Properties:
+      TypeName: AWSQS::Kubernetes::Helm
+      LoggingConfig:
+        LogGroupName: cloudformation/registry/awsqs-kubernetes-helm
+        LogRoleArn: !Ref ExecutionRoleArn
+      SchemaHandlerPackage: s3://aws-quickstart/quickstart-helm-resource-provider/awsqs-kubernetes-helm.zip
+      ExecutionRoleArn: !Ref ExecutionRoleArn
+  ResourceDefaultVersion:
+    Type: AWS::CloudFormation::ResourceDefaultVersion
+    Properties:
+      TypeVersionArn: !Ref ResourceVersion

@@ -1,0 +1,33 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "registers the AWSQS::Kubernetes::Resource and AWSQS::Kubernetes::Apply resource types"
+Parameters:
+  ExecutionRoleArn:
+    Type: String
+    Description: IAM role ARN for the resource types
+Resources:
+  ApplyResourceVersion:
+    Type: AWS::CloudFormation::ResourceVersion
+    Properties:
+      TypeName: AWSQS::Kubernetes::Resource
+      LoggingConfig:
+        LogGroupName: cloudformation/registry/awsqs-kubernetes-resource
+        LogRoleArn: !Ref ExecutionRoleArn
+      SchemaHandlerPackage: s3://aws-quickstart/quickstart-kubernetes-resource-provider/awsqs_kubernetes_apply.zip
+      ExecutionRoleArn: !Ref ExecutionRoleArn
+  GetResourceVersion:
+    Type: AWS::CloudFormation::ResourceVersion
+    Properties:
+      TypeName: AWSQS::Kubernetes::Get
+      LoggingConfig:
+        LogGroupName: cloudformation/registry/awsqs-kubernetes-resource
+        LogRoleArn: !Ref ExecutionRoleArn
+      SchemaHandlerPackage: s3://aws-quickstart/quickstart-kubernetes-resource-provider/awsqs_kubernetes_get.zip
+      ExecutionRoleArn: !Ref ExecutionRoleArn
+  ApplyResourceDefaultVersion:
+    Type: AWS::CloudFormation::ResourceDefaultVersion
+    Properties:
+      TypeVersionArn: !Ref ApplyResourceVersion
+  GetResourceDefaultVersion:
+    Type: AWS::CloudFormation::ResourceDefaultVersion
+    Properties:
+      TypeVersionArn: !Ref GetResourceVersion

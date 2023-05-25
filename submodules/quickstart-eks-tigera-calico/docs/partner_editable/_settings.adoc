@@ -1,0 +1,25 @@
+:quickstart-project-name: quickstart-eks-tigera-calico
+:partner-product-name: Tigera Calico on the AWS Cloud
+:partner-product-short-name: Calico
+:partner-company-name: Tigera
+:doc-month: December
+:doc-year: 2020
+:partner-contributors: Casey Davenport, {partner-company-name}
+:quickstart-contributors: Troy Ameigh, AWS Quick Start team
+:deployment_time: 5–30 minutes
+:default_deployment_region: us-east-1
+:eks_addin:
+:disable_regions:
+// Uncomment these two attributes if you are leveraging
+// - an AWS Marketplace listing.
+// Additional content will be auto-generated based on these attributes.
+// :marketplace_subscription:
+// :marketplace_listing_url: https://example.com/
+
+//links
+:launch_new_vpc: https://fwd.aws/6MkEA
+:launch_existing_vpc: https://fwd.aws/Ewmdr
+:launch_existing_cluster: https://fwd.aws/ENbVj
+:template_new_vpc: https://fwd.aws/DgqPB
+:template_existing_vpc: https://fwd.aws/mbD5g
+:template_existing_cluster: https://fwd.aws/znAVA

@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  KubeStateMetrics:
+    Type: "AWSQS::Kubernetes::Helm"
+    Properties:
+      ClusterID: my-cluster-name
+      Name: kube-state-metrics
+      Namespace: kube-state-metrics
+      # Uses authentication with execution role or RoleArn
+      Chart: oci://<aws_account_id>.dkr.ecr.<aws_region>.amazonaws.com/<repo>:<tag>
+      # Uses anonymous pull from ECR public.
+      # Chart: oci://public.ecr.aws/<alias>/<repo>:<tag>
+      ValueYaml: |
+        prometheus:
+          monitor:
+            enabled: true

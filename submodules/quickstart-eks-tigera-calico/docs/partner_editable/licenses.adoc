@@ -1,0 +1,17 @@
+// Include details about the license and how they can sign up. If no license is required, clarify that. 
+
+{partner-product-short-name} binaries are provided for free under the Apache 2.0 license. To enable https://bit.ly/3jHVKCi[Calico Enterprise Features^]. follow the steps below to get your free trial to access Calico Enterprise and run it directly on your EKS cluster.
+
+- Go to the Calico Enterprise trial registration website using https://www.tigera.io/tigera-products/enterprise-trial?utm_campaign=eksquickstart&utm_medium=web&utm_source=aws[this^] link.
+
+- Fill out your contact details along with your work email address to ensure you receive your trial environment details promptly.
+
+- Select Amazon EKS as your Kubernetes distro.
+
+- For the Promo Code, please use **PAR-AWS-EKS-QUICKSTART**. It is critical for you to use this code as it is used to automatically approve trial requests for this Quickstart.
+
+- Review and accept the terms of service and click the START YOUR TRIAL button.
+
+- Somebody from the Tigera team will provision your environment and send you an email with the details you need. This is currently a manual process and can take up to half an hour during business hours M-F 9 am - 5 pm PT. Requests received during non-business hours will be provisioned on the next business day.
+
+- Once you receive the email titled "Your Calico Enterprise Trial Credentials" from cet@tigera.io (make sure it's not going to your spam folder). You will be supplied with a single command to run against your EKS cluster that you launch using this quickstart. This command will automatically install the required Calico Enterprise components on your EKS cluster so you will be able to use a dedicated management portal to manage this cluster.

@@ -1,0 +1,685 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  This template installs MuleSoft RTF in an Amazon EKS cluster spanning separate Availability Zones
+  inside a VPC. This template creates an Amazon EC2 Linux instance to execute kubectl
+  commands, and then terminates the instance. (qs-1tdgepc26)
+
+Metadata:
+  cfn-lint:
+    config:
+      ignore_checks:
+        - W9006
+        - E9101
+  QuickStartDocumentation:
+    EntrypointName: "Parameters for deploying into an existing EKS cluster"
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Network configuration
+        Parameters:
+          - PrivateSubnet1ID
+      - Label:
+          default: Amazon EKS configuration
+        Parameters:
+          - EKSClusterName
+          - IAMRole
+          - SecurityGroup
+      - Label:
+          default: AWS Quick Start configuration
+        Parameters:
+          - QSS3BucketName
+          - QSS3KeyPrefix
+          - QSS3BucketRegion
+      - Label:
+          default: MuleSoft Runtime Fabric (RTF) configuration
+        Parameters:
+          - RTFFabricName
+          - OrgID
+          - UserName
+          - Password
+          - MuleLicenseKeyinbase64
+    ParameterLabels:
+      PrivateSubnet1ID:
+        default: Private subnet 1 ID
+      QSS3BucketName:
+        default: Quick Start S3 bucket name
+      QSS3BucketRegion:
+        default: Quick Start S3 bucket Region
+      QSS3KeyPrefix:
+        default: Quick Start S3 key prefix
+      EKSClusterName:
+        default: EKS cluster name
+      IAMRole:
+        default: IAM role
+      SecurityGroup:
+        default: EC2 security group
+      RTFFabricName:
+        default: Runtime Fabric name
+      OrgID:
+        default: Organization ID of your Anypoint
+      UserName:
+        default: Anypoint Platform user name
+      Password:
+        default: Anypoint Platform password
+      MuleLicenseKeyinbase64:
+        default: Mule license key in base 64 format
+
+Parameters:
+  PrivateSubnet1ID:
+    Description: ID of the private subnet in Availability Zone 1 (e.g., subnet-a0246dcd).
+    Type: AWS::EC2::Subnet::Id
+  QSS3BucketName:
+    AllowedPattern: ^[0-9a-z]+([0-9a-z-\.]*[0-9a-z])*$
+    ConstraintDescription: >-
+      The S3 bucket name can include numbers, lowercase letters, 
+      and hyphens (-), but it cannot start or end with a hyphen.
+    Default: aws-quickstart
+    Description: >-
+      Name of the S3 bucket for your copy of the deployment assets. Keep the default
+      name unless you are customizing the template. Changing the name updates code 
+      references to point to a new location.
+    MinLength: 3
+    MaxLength: 63 
+    Type: String
+  QSS3BucketRegion:
+    Default: us-east-1
+    Description: >-
+      AWS Region where the S3 bucket (QSS3BucketName) is hosted. Keep 
+      the default Region unless you are customizing the template. Changing the Region 
+      updates code references to point to a new location. When using your own bucket, 
+      specify the Region.
+    Type: String
+  QSS3KeyPrefix:
+    AllowedPattern: ^([0-9a-zA-Z!-_\.\*'\(\)/]+/)*$
+    ConstraintDescription: >-
+      The S3 key prefix can include numbers, lowercase letters, uppercase letters, 
+      hyphens (-), underscores (_), periods (.), asterisks (*), single quotes ('),
+      open parenthesis ((), close parenthesis ()), and forward slashes (/). End the
+      prefix with a forward slash.
+    Default: quickstart-eks-mulesoft-runtime-fabric/
+    Description: >-
+      S3 key prefix that is used to simulate a folder for your copy of the 
+      deployment assets. Keep the default prefix unless you are customizing 
+      the template. Changing the prefix updates code references to point to 
+      a new location.
+    Type: String
+  EKSClusterName:
+#    AllowedPattern: ^EKS-[0-9a-zA-Z]{8}$
+    Description: Name of the Amazon EKS cluster.
+    Type: String
+  IAMRole:
+    Description: IAM role for the installer to use. The role should be a member of the system:masters group in the EKS configuration map.
+    Type: String
+  SecurityGroup:
+    Description: Security group for the installer to use.
+    Type: AWS::EC2::SecurityGroup::Id
+  RTFFabricName:
+    Description: Runtime Fabric name.
+    Type: String
+  OrgID:
+    Description: ID of your Anypoint organization.
+    Type: String
+  UserName:
+    Description: Anypoint Platform user name.
+    Type: String
+    NoEcho: "true"    
+  Password:
+    Description: Anypoint Platform password.
+    Type: String
+    NoEcho: "true"    
+  MuleLicenseKeyinbase64:
+    Description: Mule license key in base 64 format.
+    Type: String
+    NoEcho: "true"    
+Conditions:
+  UsingDefaultBucket: !Equals [!Ref QSS3BucketName, 'aws-quickstart']
+  CreateLoginCredentialsSecret: !Not [!Equals [!Ref Password, ""]]
+  CreateLicenseSecret: !Not [!Equals [!Ref MuleLicenseKeyinbase64, ""]]  
+
+Resources:
+  MuleRTFLoginSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: CreateLoginCredentialsSecret
+    Properties:
+      Name: !Sub 'MuleSoft-RTF-Login-${RTFFabricName}'
+      SecretString: !Sub '{ "Username": "${UserName}", "Password": "${Password}" }'
+  
+  MuleRTFLicenseSecret:
+    Type: AWS::SecretsManager::Secret
+    DependsOn: MuleRTFLoginSecret
+    Condition: CreateLicenseSecret
+    Properties:
+      Name: !Sub 'MuleSoft-License-${RTFFabricName}'
+      SecretString: !Sub '{ "RTF_License_Key_inbase64": "${MuleLicenseKeyinbase64}" }'
+
+  SSMAutomationRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks:
+            - EIAMPolicyWildcardResource
+            - EIAMPolicyActionWildcard
+      cfn_nag:
+        rules_to_suppress:
+          - id: F38
+            reason: "IAM * permissions are required to create managed IAM policies"
+          - id: W11
+            reason: "IAM * permissions are required to create managed IAM policies"
+    Properties:
+      Policies:
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - s3:GetObject
+                Resource: !Sub
+                  - arn:${AWS::Partition}:s3:::${S3Bucket}/${QSS3KeyPrefix}*
+                  - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
+                Effect: Allow
+          PolicyName: aws-quick-start-s3-policy
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - ssm:GetParameters
+                Resource: !Sub "arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter//ami-amazon-linux/latest"
+                Effect: Allow
+          PolicyName: aws-quick-start-ssm-param-store-policy
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:SignalResource
+                Resource: !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*'
+          PolicyName: aws-quick-start-cfn-signal-policy
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Sub 'arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret/*'
+          PolicyName: aws-quick-start-secrets-manager-policy
+        - PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:CreatePolicy
+                  - iam:PutRolePolicy
+                  - iam:getRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:CreateInstanceProfile
+                  - iam:DeleteRole
+                  - iam:RemoveRoleFromInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:PassRole
+                  - iam:GetPolicy
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicy
+                Resource: '*'
+          PolicyName: aws-quick-start-create-role-policy
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ssm.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonSSMFullAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AWSCloudFormationFullAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEC2FullAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/SecretsManagerReadWrite'
+  LambdaSSMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Policies:
+        - PolicyDocument:
+           Version: '2012-10-17'
+           Statement:
+             - Effect: Allow
+               Action:
+                 - iam:PassRole
+               Resource: !GetAtt SSMAutomationRole.Arn
+          PolicyName: QS-SSM-PassRole
+      Path: /
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonSSMAutomationRole'
+  MuleSoftRtfInstallerSetup:
+    Type: AWS::SSM::Document
+    Properties:
+      DocumentType: Automation
+      Content:
+        schemaVersion: "0.3"
+        description: Set up MuleSoft RTF installer EC2 instance then terminate it after the installation is completed.
+        assumeRole: "{{AutomationAssumeRole}}"
+        parameters:
+          StackName:
+            description: "Stack name input for CFN resource signal."
+            type: "String"
+          QSS3BucketName:
+            description: "Name of the S3 bucket for your copy of the deployment assets. Keep the default
+      name unless you are customizing the template. Changing the name updates code 
+      references to point to a new location."
+            type: "String"
+          QSS3BucketRegion:
+            default: "us-east-1"
+            description: "AWS Region where the S3 bucket (QSS3BucketName) is hosted. Keep 
+      the default Region unless you are customizing the template. Changing the Region 
+      updates code references to point to a new location. When using your own bucket, 
+      specify the Region."
+            type: "String"
+          QSS3KeyPrefix:
+            description: "S3 key prefix that is used to simulate a folder for your copy of the 
+      deployment assets. Keep the default prefix unless you are customizing 
+      the template. Changing the prefix updates code references to point to 
+      a new location."
+            type: "String"
+          PrivateSubnet1ID:
+            description: "ID for private subnet 1."
+            type: "String"
+          AutomationAssumeRole:
+            description: "(Optional) The ARN of the role that allows Automation to perform the actions on your behalf."
+            type: "String"
+          AWSRegion:
+            description: "AWS Region to use."
+            type: "String"
+          EKSClusterName:
+            description: "Name of the EKS cluster."
+            type: "String"
+          IAMRole:
+            description: "IAM role for the installer to use."
+            type: "String"
+          SecurityGroup:
+            description: "Security group for the installer to use."
+            type: "String"
+          RTFFabricName:
+            description: "Runtime Fabric name."
+            type: "String"
+          OrgID:
+            description: "ID of your Anypoint organization."
+            type: "String"
+          UserName:
+            description: "Anypoint Platform user name."
+            type: "String"
+          Password:
+            description: "Anypoint Platform password."
+            type: "String"
+          MuleLicenseKeyinbase64:
+            description: "Mule license key in base 64 format."
+            type: "String"
+          Region:
+            description: "AWS Region to use."
+            type: "String"
+            default: !Ref "AWS::Region"
+        mainSteps:
+        - name:  CreateStack
+          action: aws:createStack
+          onFailure: "step:CFNSignalEnd"
+          inputs:
+            StackName: "InstallMuleSoftRtf"
+            Capabilities: [ "CAPABILITY_IAM" ]
+            TemplateBody: |
+              Description: "Deploy instance to install MuleSoft RTF."
+              Parameters:
+                LINUXBASE:
+                  Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+                  Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+                QSS3BucketName:
+                  Type: "String"
+                  Default: "{{QSS3BucketName}}"
+                  Description: "Name of target S3 bucket."
+                QSS3BucketRegion:
+                  Default: "us-east-2"
+                  Description: "AWS Region where the S3 bucket (QSS3BucketName) is hosted. Keep the default Region unless you are customizing the template. Changing the Region updates code references to point to a new location. When using your own bucket, specify the Region."
+                  Type: "String"
+                QSS3KeyPrefix:
+                  Type: "String"
+                  Default: "{{QSS3KeyPrefix}}"
+                  Description: "Name of target S3 prefix."
+                Subnet:
+                  Description: "Subnet to deploy the EC2 instance."
+                  Default: "{{PrivateSubnet1ID}}"
+                  Type: "String"
+                EKSClusterName:
+                  Description: Name of the EKS cluster.
+                  Type: "String"
+                  Default: "{{EKSClusterName}}"
+                IAMRole:
+                  Description: IAM role for the installer to use.
+                  Type: "String"
+                  Default: "{{IAMRole}}"
+                SecurityGroup:
+                  Description: Security group for the installer to use.
+                  Type: "AWS::EC2::SecurityGroup::Id"
+                  Default: "{{SecurityGroup}}"
+                RTFFabricName:
+                  Description: Runtime Fabric name.
+                  Type: "String"
+                  Default: "{{RTFFabricName}}"
+                OrgID:
+                  Description: ID of your Anypoint organization.
+                  Type: "String"
+                  Default: "{{OrgID}}"
+                UserName:
+                  Description: Anypoint Platform user name.
+                  Type: "String"
+                  Default: "{{UserName}}"
+                Password:
+                  Description: Anypoint Platform password.
+                  Type: "String"
+                  Default: "{{Password}}"
+                MuleLicenseKeyinbase64:
+                  Description: Mule license key in base 64 format.
+                  Type: "String"
+                  Default: "{{MuleLicenseKeyinbase64}}"
+              Resources:
+                MuleSoftRtfManagedS3Policy:
+                  Type: 'AWS::IAM::ManagedPolicy'
+                  Properties:
+                    PolicyDocument:
+                      Version: '2012-10-17'
+                      Statement:
+                        - Action:
+                            - s3:GetObject
+                            - s3:ListBucket
+                          Resource: '*'
+                          Effect: Allow
+                    Roles:
+                    - !Ref IAMRole
+                MuleSoftRtfManagedSecretsManagerPolicy:
+                  Type: 'AWS::IAM::ManagedPolicy'
+                  Properties:
+                    PolicyDocument:
+                      Version: '2012-10-17'
+                      Statement:
+                        - Action:
+                            - secretsmanager:GetSecretValue
+                            - secretsmanager:CreateSecret
+                          Resource: '*'
+                          Effect: Allow
+                    Roles:
+                    - !Ref IAMRole             
+                MuleSoftRtfManagedEKSPolicy:
+                  Type: 'AWS::IAM::ManagedPolicy'
+                  Properties:
+                    PolicyDocument:
+                      Version: '2012-10-17'
+                      Statement:
+                        - Action:
+                            - cloudformation:*
+                            - eks:*
+                            - ec2:DescribeSecurityGroups
+                            - ec2:DescribeSubnets
+                            - ec2:DescribeVpcs
+                            - ec2:DescribeAccountAttributes
+                            - ec2:DescribeAddresses
+                            - ec2:DescribeInternetGateways
+                          Resource: "*"
+                          Effect: Allow
+                    Roles:
+                    - !Ref IAMRole
+                IamInstanceProfile:
+                  Type: "AWS::IAM::InstanceProfile"
+                  Properties:
+                    Roles:
+                    - !Ref IAMRole
+                EC2Instance:
+                  Type: "AWS::EC2::Instance"
+                  Properties:
+                    ImageId: !Ref LINUXBASE
+                    InstanceType: "t3.micro"
+                    IamInstanceProfile: !Ref IamInstanceProfile
+                    SubnetId: !Ref Subnet
+                    SecurityGroupIds:
+                      - !Ref 'SecurityGroup'
+                    Tags:
+                    - Key: "Name"
+                      Value: "TempMuleSoftRTFInstance"
+                    UserData:
+                      Fn::Base64: !Sub |
+                        #cloud-config
+                        repo_upgrade: none
+        - name: "getInstanceId"
+          action: aws:executeAwsApi
+          onFailure: "step:CFNSignalEnd"
+          inputs:
+            Service: ec2
+            Api: DescribeInstances
+            Filters:
+            - Name: "tag:Name"
+              Values: [ "TempMuleSoftRTFInstance" ]
+            - Name: "instance-state-name"
+              Values: [ "running" ]
+          outputs:
+          - Name: InstanceId
+            Selector: "$.Reservations[0].Instances[0].InstanceId"
+            Type: String
+        - name: "DownloadAndRunMuleSoftRTFInstallScript"
+          action: "aws:runCommand"
+          onFailure: "step:signalfailure"
+          inputs:
+            DocumentName: "AWS-RunShellScript"
+            InstanceIds:
+              - "{{getInstanceId.InstanceId}}"
+            CloudWatchOutputConfig:
+              CloudWatchOutputEnabled: "true"
+              CloudWatchLogGroupName: !Sub '/aws/Quick_Start/${AWS::StackName}'
+            Parameters:
+              commands:
+                - aws s3 cp --recursive s3://{{QSS3BucketName}}/{{QSS3KeyPrefix}}scripts/ /tmp/
+                - /bin/su - ec2-user -c 'cd /tmp && sh -x mulertf_install.sh {{Region}} {{QSS3BucketName}} {{QSS3KeyPrefix}} {{QSS3BucketRegion}} {{EKSClusterName}} {{RTFFabricName}} {{OrgID}}'
+        - name: CFNSignalEnd
+          action: aws:branch
+          inputs:
+            Choices:
+            - NextStep: signalsuccess
+              Not:
+                Variable: "{{StackName}}"
+                StringEquals: ""
+            - NextStep: sleepend
+              Variable: "{{StackName}}"
+              StringEquals: ""
+        # If all steps complete successfully signals CFN of Success
+        - name: "signalsuccess"
+          action: "aws:executeAwsApi"
+          nextStep: "deleteStack"
+          inputs:
+            Service: cloudformation
+            Api: SignalResource
+            LogicalResourceId: "SSMWaitCondition"
+            StackName: "{{StackName}}"
+            Status: SUCCESS
+            UniqueId: "{{getInstanceId.InstanceId}}"
+        # If CFN Signl Not Needed this sleep ends work flow
+        - name: "sleepend"
+          action: "aws:sleep"
+          nextStep: "deleteStack"
+          inputs:
+            Duration: PT1S
+        # If any steps fails signals CFN of Failure
+        - name: "signalfailure"
+          action: "aws:executeAwsApi"
+          nextStep: "deleteStack"
+          inputs:
+            Service: cloudformation
+            Api: SignalResource
+            LogicalResourceId: "SSMWaitCondition"
+            StackName: "{{StackName}}"
+            Status: FAILURE
+            UniqueId: "{{getInstanceId.InstanceId}}"
+        - name: deleteStack
+          action: aws:deleteStack
+          isEnd: true
+          onFailure: Continue
+          inputs:
+            StackName: "InstallMuleSoftRtf"
+  LambdaSSMExecute:
+    Type: AWS::Lambda::Function
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: "LambdaSSMRole has proper permissions via managed policy"
+    Properties:
+      Description: Executes SSM Automation Documents
+      Handler: index.handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaSSMRole.Arn
+      Timeout: 900
+      Code:
+        ZipFile: |
+          def handler(event, context):
+              import cfnresponse
+              import boto3, os, json
+              from botocore.vendored import requests
+
+              ssm_cl = boto3.client('ssm')
+              ecr_cl = boto3.client('ecr')
+              req_type = event['RequestType']
+              print(event)
+
+              SUCCESS = "SUCCESS"
+              FAILED = "FAILED"
+
+              def start_ssmautomation(event):
+                  doc_name = event['ResourceProperties']['DocumentName']
+                  stack_name = event['ResourceProperties']['StackName']
+                  ssm_role = event['ResourceProperties']['AutomationAssumeRole']
+                  qs_bucket = event['ResourceProperties']['QSS3BucketName']
+                  qs_region = event['ResourceProperties']['QSS3BucketRegion']
+                  qs_bucket_prefix = event['ResourceProperties']['QSS3KeyPrefix']
+                  subnet_id = event['ResourceProperties']['PrivateSubnet1ID']
+                  aws_region = event['ResourceProperties']['AWSRegion']
+                  eks_cluster = event['ResourceProperties']['EKSClusterName']
+                  iam_role = event['ResourceProperties']['IAMRole']
+                  security_group = event['ResourceProperties']['SecurityGroup']
+                  mule_rtffabricname = event['ResourceProperties']['RTFFabricName']
+                  mule_orgid = event['ResourceProperties']['OrgID']
+                  mule_username = event['ResourceProperties']['UserName']
+                  mule_password = event['ResourceProperties']['Password']
+                  mule_license = event['ResourceProperties']['MuleLicenseKeyinbase64']
+                  if qs_bucket == "aws-quickstart":
+                    qs_bucket = "aws-quickstart-" + qs_region
+
+                  start_automation = ssm_cl.start_automation_execution(
+                      DocumentName= doc_name,
+                      Parameters={
+                          'StackName': [
+                              stack_name
+                          ],
+                          'AutomationAssumeRole': [
+                              ssm_role
+                          ],
+                          'QSS3BucketName': [
+                              qs_bucket
+                          ],
+                          'QSS3BucketRegion': [
+                              qs_region
+                          ],
+                          'QSS3KeyPrefix': [
+                              qs_bucket_prefix
+                          ],
+                          'PrivateSubnet1ID': [
+                              subnet_id
+                          ],
+                          'AWSRegion': [
+                              aws_region
+                          ],
+                          'EKSClusterName': [
+                              eks_cluster
+                          ],
+                          'IAMRole': [
+                              iam_role
+                          ],
+                          'SecurityGroup': [
+                              security_group
+                          ],
+                          'RTFFabricName': [
+                              mule_rtffabricname
+                          ],
+                          'OrgID': [
+                              mule_orgid
+                          ],
+                          'UserName': [
+                              mule_username
+                          ],
+                          'Password': [
+                              mule_password
+                          ],
+                          'MuleLicenseKeyinbase64': [
+                              mule_license
+                          ]
+                      },
+                  )
+
+                  cfnresponse.send(event, context, SUCCESS, start_automation, start_automation['AutomationExecutionId'])
+
+              def delete_image(event):
+                  cfnresponse.send(event, context, SUCCESS, event, "Deleted")
+
+              actions = {
+                  'Create': start_ssmautomation,
+                  'Delete': delete_image,
+                  'Update': start_ssmautomation
+              }
+
+              try:
+                  actions.get(req_type)(event)
+              except Exception as exc:
+                  error_msg = {'Error': '{}'.format(exc)}
+                  print(error_msg)
+                  cfnresponse.send(event, context, FAILED, error_msg)
+  ExecuteSSMAutomation:
+    Type: Custom::ExecuteSSMAutomation
+    Properties:
+      ServiceToken: !GetAtt LambdaSSMExecute.Arn
+      DocumentName: !Ref MuleSoftRtfInstallerSetup
+      StackName: !Ref AWS::StackName
+      QSS3BucketName: !Ref QSS3BucketName
+      QSS3BucketRegion: !Ref QSS3BucketRegion
+      QSS3KeyPrefix: !Ref QSS3KeyPrefix
+      AutomationAssumeRole: !GetAtt SSMAutomationRole.Arn
+      PrivateSubnet1ID: !Ref PrivateSubnet1ID
+      AWSRegion: !Ref 'AWS::Region'
+      EKSClusterName: !Ref EKSClusterName
+      IAMRole: !Ref 'IAMRole'
+      SecurityGroup: !Ref 'SecurityGroup'
+      RTFFabricName: !Ref 'RTFFabricName'
+      OrgID: !Ref 'OrgID'
+      UserName: !Ref 'UserName'
+      Password: !Ref 'Password'
+      MuleLicenseKeyinbase64: !Ref 'MuleLicenseKeyinbase64'
+  SSMWaitHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+  SSMWaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT60M
+        Count: 1
+    DependsOn:
+      - ExecuteSSMAutomation
+    Properties:
+      Handle:
+        Ref: "SSMWaitHandle"
+      Timeout: "3600"
+      Count: 1

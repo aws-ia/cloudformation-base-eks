@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+._*
+
+# our logs
+rpdk.log
+
+#compiled file
+bin/
+
+.hypothesis
+.pytest_cache
+
+.idea
+go.sum
+output/
+delve/
+resource-role.yaml
