@@ -1,6 +1,0 @@
-// Include details about the license and how they can sign up. If no license is required, clarify that. #
-
-Using this Quick Start in a production environment requires a KOP license. To acquire a license https://console.rafay.dev/#/signup[create a Rafay account^].
-
-
-

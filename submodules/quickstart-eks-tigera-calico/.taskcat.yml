@@ -1,8 +1,0 @@
-project:
-  name: quickstart-eks-tigera-calico
-  owner: quickstart-eng@amazon.com
-  regions: ["us-east-1"]
-  template: templates/eks-calico-entrypoint.template.yaml
-  parameters: {}
-tests:
-  defaults: {}

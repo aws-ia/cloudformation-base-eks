@@ -1,3 +1,0 @@
-* Tigera Operator and associated resources in its own namespace.
-* A custom resource that configures the {partner-product-short-name} installation.
-* {partner-product-short-name} resources in the `calico-system` namespace.

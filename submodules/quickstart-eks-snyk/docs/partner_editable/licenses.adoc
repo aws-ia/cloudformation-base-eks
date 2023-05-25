@@ -1,1 +1,0 @@
-This Quick Start requires a Snyk license. For more information, see https://aws.amazon.com/marketplace/pp/B085VGM85Q?qid=1590170928622&sr=0-1&ref_=srh_res_product_title[Snyk's AWS Marketplace page^].

@@ -1,8 +1,0 @@
-project:
-  name: quickstart-eks-snyk
-  owner: quickstart-eng@amazon.com
-  regions: ["us-west-2"]
-  template: templates/eks-snyk.template.yaml
-  parameters: {}
-tests:
-  defaults: {}
