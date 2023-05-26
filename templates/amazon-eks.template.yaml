@@ -22,7 +22,7 @@ Parameters:
     Default: aws-quickstart
   QSS3KeyPrefix:
     AllowedPattern: ^[0-9a-zA-Z-/.]*$
-    Default: quickstart-amazon-eks/
+    Default: cloudformation-base-eks/
     Type: String
   QSS3BucketRegion:
     Default: us-east-1
@@ -117,57 +117,6 @@ Parameters:
   EKSClusterName:
     Type: String
     Default: ''
-  SnykIntegrationId:
-    Type: String
-    Default: ''
-  SnykIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  NewRelicLicenseKey:
-    Type: String
-    Default: ''
-    NoEcho: true
-  NewRelicIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  CalicoIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  RafaySysIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  RafaySysProject:
-    Type: String
-    Default: defaultproject
-  RafaySysBootstrapBucket:
-    Type: String
-    Default: ''
-  RafaySysBootstrapKey:
-    Type: String
-    Default: ''
-  RafaySysApiKey:
-    Type: String
-    Default: ''
-  RafaySysApiSecret:
-    Type: String
-    Default: ''
-    NoEcho: true
-  RafaySysFirstName:
-    Type: String
-    Default: ''
-  RafaySysLastName:
-    Type: String
-    Default: ''
-  RafaySysOrganizationName:
-    Type: String
-    Default: ''
-  RafaySysEmail:
-    Type: String
-    Default: ''
   ConfigSetName:
     Type: String
   TestSuite:
@@ -188,26 +137,6 @@ Parameters:
     Type: String
     AllowedValues: [Managed, Unmanaged]
     Default: Managed
-  MuleSoftRtfIntegration:
-    Type: String
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  RTFFabricName:
-    Type: String
-    Default: ''
-  OrgID:
-    Type: String
-    Default: ''
-  UserName:
-    Type: String
-    Default: ''
-  Password:
-    Type: String
-    NoEcho: true
-    Default: ''
-  MuleLicenseKeyinbase64:
-    Type: String
-    Default: ''
 Mappings:
   Config:
     Prefix: { Value: eks-quickstart }
@@ -283,12 +212,7 @@ Conditions:
   Commercial: !Equals [!Ref AWS::Partition, aws]
   EnableProxy: !Not [!Equals [!Ref HttpProxy, '']]
   DeployTestStack: !Equals [!Ref TestSuite, Enabled]
-  EnableSnyk: !Equals [!Ref SnykIntegration, Enabled]
-  EnableNewRelic: !Equals [!Ref NewRelicIntegration, Enabled]
-  EnableCalico: !Equals [!Ref CalicoIntegration, Enabled]
-  EnableRafaySys: !Equals [!Ref RafaySysIntegration, Enabled]
   EnableFargate: !Not [!Equals [!Ref FargateNamespaces, '']]
-  EnableMuleSoftRtf: !Equals [!Ref MuleSoftRtfIntegration, Enabled]
   3AZDeployment: !Not [!Equals [!Ref PrivateSubnet3ID, '']]
   2AZDeployment: !Or
     - !Not [!Equals [!Ref PrivateSubnet2ID, '']]
@@ -731,79 +655,6 @@ Resources:
         # ManifestUrl: !Sub
         # - s3://${S3Bucket}/${QSS3KeyPrefix}scripts/test-manifest.yaml
         # - S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-  NewRelicStack:
-    Type: AWS::CloudFormation::Stack
-    Condition: EnableNewRelic
-    DependsOn: [ControlPlaneSecurityGroupIngress, FunctionStack, NodeGroupStack, EbsStorageClass]
-    Metadata:
-      DependsOn:
-        - !If [EnableFargate, !Ref FargateStack, !Ref AWS::NoValue]
-    Properties:
-      TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-newrelic-infrastructure/templates/new-relic-infrastructure.template.yaml
-        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        KubeClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        NewRelicLicenseKey: !Ref NewRelicLicenseKey
-  SnykStack:
-    Type: AWS::CloudFormation::Stack
-    DependsOn: [ControlPlaneSecurityGroupIngress, FunctionStack, NodeGroupStack, EbsStorageClass]
-    Condition: EnableSnyk
-    Metadata:
-      DependsOn:
-        - !If [EnableFargate, !Ref FargateStack, !Ref AWS::NoValue]
-    Properties:
-      TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-snyk/templates/eks-snyk.template.yaml
-        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        KubeClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        SnykIntegrationId: !Ref SnykIntegrationId
-        Namespace: snyk-monitor
-  CalicoStack:
-    Type: AWS::CloudFormation::Stack
-    Condition: EnableCalico
-    DependsOn: [FunctionStack, ControlPlaneSecurityGroupIngress, NodeGroupStack, EbsStorageClass]
-    Metadata:
-      DependsOn:
-        - !If [EnableFargate, !Ref FargateStack, !Ref AWS::NoValue]
-    Properties:
-      TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-tigera-calico/templates/eks-calico-entrypoint.template.yaml
-        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        KubeClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-eks-tigera-calico/
-        QSS3BucketRegion: !Ref QSS3BucketRegion
-  RafaySysStack:
-    Type: AWS::CloudFormation::Stack
-    Condition: EnableRafaySys
-    DependsOn: [FunctionStack, ControlPlaneSecurityGroupIngress, EbsStorageClass]
-    Metadata:
-      DependsOn:
-        - !If [EnableFargate, !Ref FargateStack, !Ref AWS::NoValue]
-    Properties:
-      TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-rafay-systems/templates/eks-rafay.template.yaml
-        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        EksClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-eks-rafay-systems/
-        Project: !Ref RafaySysProject
-        BootstrapBucket: !Ref RafaySysBootstrapBucket
-        BootstrapKey: !Ref RafaySysBootstrapKey
-        ApiKey: !Ref RafaySysApiKey
-        ApiSecret: !Ref RafaySysApiSecret
-        FirstName: !Ref RafaySysFirstName
-        LastName: !Ref RafaySysLastName
-        OrganizationName: !Ref RafaySysOrganizationName
-        Email: !Ref RafaySysEmail
   WindowsSupportStack:
     Type: AWS::CloudFormation::Stack
     DependsOn: [WindowsSupportNodeGroupStack]
@@ -815,31 +666,6 @@ Resources:
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-  MuleSoftRtfStack:
-    Type: AWS::CloudFormation::Stack
-    Condition: EnableMuleSoftRtf
-    DependsOn: [FunctionStack, ControlPlaneSecurityGroupIngress, EbsStorageClass]
-    Metadata:
-      DependsOn:
-        - !If [EnableFargate, !Ref FargateStack, !Ref AWS::NoValue]
-    Properties:
-      TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}submodules/quickstart-eks-mulesoft-runtime-fabric/templates/mule-rtf-template.yaml
-        - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
-          S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Parameters:
-        PrivateSubnet1ID: !Ref PrivateSubnet1ID
-        EKSClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        RTFFabricName: !Ref RTFFabricName
-        OrgID: !Ref OrgID
-        UserName: !Ref UserName
-        Password: !Ref Password
-        MuleLicenseKeyinbase64: !Ref MuleLicenseKeyinbase64
-        IAMRole: !GetAtt IamStack.Outputs.BastionRole
-        SecurityGroup: !GetAtt NodeGroupStack.Outputs.EKSNodeSecurityGroup
-        QSS3BucketName: !Ref QSS3BucketName
-        QSS3KeyPrefix: !Sub ${QSS3KeyPrefix}submodules/quickstart-eks-mulesoft-runtime-fabric/
-        QSS3BucketRegion: !Ref QSS3BucketRegion
   ConfigureProxy:
     Type: Custom::KubeManifest
     Condition: EnableProxy

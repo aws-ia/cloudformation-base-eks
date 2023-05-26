@@ -5,12 +5,6 @@ Metadata:
     EntrypointName: Launch into an existing VPC
     Order: Index b
   cfn-lint: { config: { ignore_checks: [E9101] } }
-  LintSpellExclude:
-    - Snyk
-    - New Relic
-    - Rafay
-    - MuleSoft
-    - Anypoint
   SentenceCaseExclude:
     - Memory
   AWS::CloudFormation::Interface:
@@ -59,42 +53,6 @@ Metadata:
           - NodeGroupType
           - OnDemandPercentage
           - NodeGroupOS
-      - Label:
-          default: Snyk monitor (AWS Partner security)
-        Parameters:
-          - SnykIntegration
-          - SnykIntegrationId
-      - Label:
-          default: New Relic infrastructure (AWS Partner monitoring)
-        Parameters:
-          - NewRelicIntegration
-          - NewRelicLicenseKey
-      - Label:
-          default: Calico policy (APN security partner)
-        Parameters:
-          - CalicoIntegration
-      - Label:
-          default: Rafay Systems (APN software & internet partner)
-        Parameters:
-          - RafaySysIntegration
-          - RafaySysProject
-          - RafaySysBootstrapBucket
-          - RafaySysBootstrapKey
-          - RafaySysApiKey
-          - RafaySysApiSecret
-          - RafaySysFirstName
-          - RafaySysLastName
-          - RafaySysOrganizationName
-          - RafaySysEmail
-      - Label:
-          default: MuleSoft Anypoint Runtime Fabric (AWS Partner integration)
-        Parameters:
-          - MuleSoftRtfIntegration
-          - RTFFabricName
-          - OrgID
-          - UserName
-          - Password
-          - MuleLicenseKeyinbase64
       - Label:
           default: Kubernetes add-ins
         Parameters:
@@ -163,36 +121,6 @@ Metadata:
         default: EKS cluster name
       KubernetesVersion:
         default: Kubernetes version
-      SnykIntegrationId:
-        default: Integration ID
-      SnykIntegration:
-        default: Snyk integration
-      NewRelicIntegration:
-        default: New Relic integration
-      NewRelicLicenseKey:
-        default: License key
-      CalicoIntegration:
-        default: Calico policy integration
-      RafaySysIntegration:
-        default: Rafay Systems integration
-      RafaySysProject:
-        default: Rafay project
-      RafaySysFirstName:
-        default: First name
-      RafaySysLastName:
-        default: Last name
-      RafaySysOrganizationName:
-        default: Organization name
-      RafaySysEmail:
-        default: Email
-      RafaySysApiKey:
-        default: API key
-      RafaySysApiSecret:
-        default: API secret
-      RafaySysBootstrapBucket:
-        default: Bootstrap S3 bucket
-      RafaySysBootstrapKey:
-        default: Bootstrap S3 key
       EKSPublicAccessEndpoint:
         default: EKS public access endpoint
       HttpProxy:
@@ -219,22 +147,6 @@ Metadata:
         default: EKS node on-demand percentage
       NodeGroupOS:
         default: Node group operating system
-      MuleSoftRtfIntegration:
-        default: MuleSoft Anypoint Runtime Fabric integration
-      RTFFabricName:
-        default: Runtime Fabric name
-      OrgID:
-        default: Organization ID of your Anypoint
-      UserName:
-        default: Anypoint platform username
-      Password:
-        default: Anypoint platform password
-      MuleLicenseKeyinbase64:
-        default: MuleSoft license key in base64 format
-      PrometheusIntegration:
-        default: Prometheus integration
-      GrafanaIntegration:
-        default: Grafana integration
 Parameters:
   # NOTE: Don't change the type of KeyPairName parameter back to AWS::EC2::KeyPair::KeyName.
   # String type is intentional as it enables default (empty) value. By using defaults, we
@@ -269,7 +181,7 @@ Parameters:
     ConstraintDescription: >-
       Quick Start key prefix can include numbers, lowercase letters, uppercase
       letters, hyphens (-), periods (.) and forward slash (/).
-    Default: quickstart-amazon-eks/
+    Default: cloudformation-base-eks/
   QSS3BucketRegion:
     Type: String
     Description: >-
@@ -524,34 +436,6 @@ Parameters:
       advanced configuration template (including the default) will be used.
     AllowedValues: [1.24, 1.23, 1.22]
     Default: 1.24
-  SnykIntegrationId:
-    Type: String
-    Description: >-
-      If Snyk is enabled, a value must be provided. For more information, see
-      https://support.snyk.io/hc/en-us/articles/360003916158-Install-the-Snyk-controller-with-Helm.
-    AllowedPattern: ^[a-z0-9-]{36}$|^$
-    Default: ''
-  SnykIntegration:
-    Type: String
-    Description: >-
-      For more information, see
-      https://github.com/aws-quickstart/quickstart-eks-snyk/.
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  NewRelicLicenseKey:
-    Type: String
-    Description: >-
-      If New Relic is enabled, this must be provided. For more information, see
-      https://docs.newrelic.com/docs/accounts/install-new-relic/account-setup/license-key.
-    NoEcho: true
-    Default: ''
-  NewRelicIntegration:
-    Type: String
-    Description: >-
-      For more information, see
-      https://github.com/aws-quickstart/quickstart-eks-newrelic-infrastructure/.
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
   ConfigSetName:
     Type: String
     Description: >-
@@ -566,59 +450,6 @@ Parameters:
     Description: Deploys a test stack that tests Quick Start components.
     AllowedValues: [Enabled, Disabled]
     Default: Disabled
-  CalicoIntegration:
-    Type: String
-    Description: For more information see https://www.projectcalico.org/.
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  RafaySysIntegration:
-    Type: String
-    Description: >-
-      For more information see
-      https://aws-quickstart.github.io/quickstart-eks-rafay-systems/.
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  RafaySysProject:
-    Type: String
-    Description: This is the name you want to use for you Rafay deployment.
-    Default: defaultproject
-  RafaySysBootstrapBucket:
-    Type: String
-    Description: >-
-      (Optional) S3 bucket to place the the rafay bootstrap yaml file. If left
-      blank the EKS Quick Start bucket will be used.
-    Default: ''
-  RafaySysBootstrapKey:
-    Type: String
-    Description: >-
-      (Optional) S3 key to place the the rafay bootstrap yaml file. If left
-      blank the key will be rafay/<CLUSTER_NAME>/cluster-bootstrap.yaml.
-    Default: ''
-  RafaySysApiKey:
-    Type: String
-    Description: Required if using an existing Rafay account.
-    Default: ''
-  RafaySysApiSecret:
-    Type: String
-    Description: Required if using an existing Rafay account.
-    Default: ''
-    NoEcho: true
-  RafaySysFirstName:
-    Type: String
-    Description: Required if registering a new Rafay account.
-    Default: ''
-  RafaySysLastName:
-    Type: String
-    Description: Required if registering a new Rafay account.
-    Default: ''
-  RafaySysOrganizationName:
-    Type: String
-    Description: Required if registering a new Rafay account.
-    Default: ''
-  RafaySysEmail:
-    Type: String
-    Description: Required if registering a new Rafay account.
-    Default: ''
   PerAccountSharedResources:
     Type: String
     Description: >-
@@ -699,36 +530,6 @@ Parameters:
       "Windows", an additional Amazon Linux node group is created.
     AllowedValues: [Amazon Linux 2, Bottlerocket, Windows]
     Default: Amazon Linux 2
-  MuleSoftRtfIntegration:
-    Type: String
-    Description: >-
-      For more information, see
-      https://github.com/aws-quickstart/quickstart-eks-mulesoft-runtime-fabric/.
-    AllowedValues: [Enabled, Disabled]
-    Default: Disabled
-  RTFFabricName:
-    Type: String
-    Description: Runtime Fabric name.
-    Default: ''
-  OrgID:
-    Type: String
-    Description: Organization ID of your Anypoint.
-    Default: ''
-  UserName:
-    Type: String
-    Description: Anypoint platform username.
-    NoEcho: true
-    Default: ''
-  Password:
-    Type: String
-    Description: Anypoint platform password.
-    NoEcho: true
-    Default: ''
-  MuleLicenseKeyinbase64:
-    Type: String
-    Description: MuleSoft license key in base64 format.
-    NoEcho: true
-    Default: ''
 Conditions:
   DetectSharedStacks: !And
     - !Equals [!Ref PerAccountSharedResources, AutoDetect]
@@ -746,7 +547,7 @@ Resources:
     Condition: DetectSharedStacks
     Properties:
       TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/workloads/amazon-eks-prerequisites.template.yaml
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks-prerequisites.template.yaml
         - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
@@ -806,7 +607,7 @@ Resources:
         - !If [DetectSharedStacks, !Ref AutoDetectSharedResources, !Ref AWS::NoValue]
     Properties:
       TemplateURL: !Sub
-        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/workloads/amazon-eks.template.yaml
+        - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks.template.yaml
         - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
@@ -839,32 +640,6 @@ Resources:
         NodeInstanceFamily: !Ref NodeInstanceFamily
         NodeGroupType: !Ref NodeGroupType
         NodeGroupOS: !Ref NodeGroupOS
-        # Snyk monitor (AWS Partner security)
-        SnykIntegration: !Ref SnykIntegration
-        SnykIntegrationId: !Ref SnykIntegrationId
-        # New Relic infrastructure (AWS Partner monitoring)
-        NewRelicIntegration: !Ref NewRelicIntegration
-        NewRelicLicenseKey: !Ref NewRelicLicenseKey
-        # Calico policy (APN security partner)
-        CalicoIntegration: !Ref CalicoIntegration
-        # Rafay Systems (APN software & internet partner)
-        RafaySysIntegration: !Ref RafaySysIntegration
-        RafaySysProject: !Ref RafaySysProject
-        RafaySysBootstrapBucket: !Ref RafaySysBootstrapBucket
-        RafaySysBootstrapKey: !Ref RafaySysBootstrapKey
-        RafaySysApiKey: !Ref RafaySysApiKey
-        RafaySysApiSecret: !Ref RafaySysApiSecret
-        RafaySysFirstName: !Ref RafaySysFirstName
-        RafaySysLastName: !Ref RafaySysLastName
-        RafaySysOrganizationName: !Ref RafaySysOrganizationName
-        RafaySysEmail: !Ref RafaySysEmail
-        # MuleSoft Anypoint Runtime Fabric (AWS Partner integration)
-        MuleSoftRtfIntegration: !Ref MuleSoftRtfIntegration
-        RTFFabricName: !Ref RTFFabricName
-        OrgID: !Ref OrgID
-        UserName: !Ref UserName
-        Password: !Ref Password
-        MuleLicenseKeyinbase64: !Ref MuleLicenseKeyinbase64
         # Kubernetes add-ins
         ProvisionLoadBalancerController: !Ref LoadBalancerController
         ProvisionCertManager: !Ref CertManager

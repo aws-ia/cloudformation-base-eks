@@ -40,7 +40,7 @@ Parameters:
     ConstraintDescription: >-
       Quick Start key prefix can include numbers, lowercase letters, uppercase
       letters, hyphens (-), dots(.) and forward slash (/).
-    Default: quickstart-amazon-eks/
+    Default: cloudformation-base-eks/
   RandomStr:
     Type: String
     Description: >-

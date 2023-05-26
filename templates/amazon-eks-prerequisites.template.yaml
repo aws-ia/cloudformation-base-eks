@@ -25,7 +25,7 @@ Parameters:
   QSS3KeyPrefix:
     Type: String
     AllowedPattern: ^[0-9a-zA-Z-/.]*$
-    Default: quickstart-amazon-eks/
+    Default: cloudformation-base-eks/
 Conditions:
   UsingDefaultBucket: !Equals [!Ref QSS3BucketName, aws-quickstart]
 Resources:
