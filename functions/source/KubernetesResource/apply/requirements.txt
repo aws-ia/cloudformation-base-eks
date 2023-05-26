@@ -1,0 +1,4 @@
+git+https://github.com/aws-cloudformation/cloudformation-cli-python-plugin.git#egg=cloudformation-cli-python-lib&subdirectory=src
+ruamel.yaml==0.17.4
+requests
+awscli

@@ -1,0 +1,65 @@
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 8400
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+                - "resources.cloudformation.amazonaws.com"
+              AWS: !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Resource: '*'
+                Action:
+                  - iam:PassRole
+                  - eks:CreateCluster
+                  - ec2:DeleteNetworkInterface
+                  - eks:DescribeCluster
+                  - kms:DescribeKey
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeRouteTables
+                  - lambda:CreateFunction
+                  - ssm:DeleteParameter
+                  - logs:PutLogEvents
+                  - lambda:GetFunction
+                  - logs:CreateLogStream
+                  - secretsmanager:GetSecretValue
+                  - eks:UpdateClusterVersion
+                  - lambda:InvokeFunction
+                  - kms:Decrypt
+                  - eks:UntagResource
+                  - sts:GetCallerIdentity
+                  - s3:GetObject
+                  - logs:CreateLogGroup
+                  - ec2:CreateNetworkInterface
+                  - lambda:UpdateFunctionCode
+                  - lambda:DeleteFunction
+                  - sts:AssumeRole
+                  - cloudformation:ListExports
+                  - eks:TagResource
+                  - kms:CreateGrant
+                  - eks:ListTagsForResource
+                  - eks:DeleteCluster
+                  - lambda:UpdateFunctionConfiguration
+                  - ec2:DescribeVpcs
+                  - ec2:DescribeSubnets
+                  - eks:UpdateClusterConfig
+                  - ssm:PutParameter
+                  - ec2:DescribeSecurityGroups
+                  - ssm:GetParameter
+Outputs:
+  ExecutionRole: 
+    Value: !GetAtt ExecutionRole.Arn
+    Export:
+      Name: k8s-resource-type-role

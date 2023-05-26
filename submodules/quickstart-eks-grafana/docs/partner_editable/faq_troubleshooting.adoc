@@ -1,0 +1,13 @@
+== FAQ
+*Q.* I encountered a *CREATE_FAILED* error when I launched the Quick Start.
+
+*A.* If AWS CloudFormation fails to create the stack, we recommend that you relaunch the template with *Rollback on failure* set to *Disabled*. (This setting is under *Advanced* in the AWS CloudFormation console, *Options* page.) With this setting, the stack’s state is retained, and the workload remains running so you can troubleshoot the issue.
+
+WARNING: When you set *Rollback on failure* to *Disabled*, you continue to incur AWS charges for the stack. Make sure to delete the stack when you finish troubleshooting.
+
+== Troubleshooting
+* For help with Amazon EKS, see https://aws-quickstart.github.io/quickstart-amazon-eks/[Amazon EKS on the AWS Cloud^].
+
+* For help with Grafana, see https://grafana.com/docs/grafana/latest/troubleshooting/[Troubleshooting^].
+
+* For AWS CloudFormation, see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/troubleshooting.html[Troubleshooting AWS CloudFormation^].

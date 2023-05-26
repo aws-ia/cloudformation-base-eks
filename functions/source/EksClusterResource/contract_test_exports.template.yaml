@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  ControlPlaneRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Policies:
+        - PolicyName: ec2-describe-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeAccountAttributes
+                  - ec2:DescribeAddresses
+                  - ec2:DescribeInternetGateways
+                Resource: '*'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSClusterPolicy'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonEKSServicePolicy'
+  VPCStack:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: 'https://aws-quickstart.s3.us-east-1.amazonaws.com/quickstart-aws-vpc/templates/aws-vpc.template'
+      Parameters:
+        AvailabilityZones: !Sub
+        - "${AZ1},${AZ2}"
+        - AZ1: !Select [0, Fn::GetAZs: !Ref 'AWS::Region']
+          AZ2: !Select [1, Fn::GetAZs: !Ref 'AWS::Region']
+        NumberOfAZs: 2
+        PrivateSubnet1ACIDR: '10.0.0.0/24'
+        PrivateSubnet2ACIDR: '10.0.1.0/24'
+        PrivateSubnet3ACIDR: '10.0.2.0/24'
+        PrivateSubnetATag2: "kubernetes.io/role/internal-elb="
+        PublicSubnet1CIDR: '10.0.10.0/24'
+        PublicSubnet2CIDR: '10.0.11.0/24'
+        PublicSubnet3CIDR: '10.0.12.0/24'
+        PublicSubnetTag2: "kubernetes.io/role/elb="
+        VPCCIDR: '10.0.0.0/16'
+  ControlPlaneSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Cluster communication
+      VpcId: !GetAtt VPCStack.Outputs.VPCID
+  KMSKey:
+    Type: "AWS::KMS::Key"
+    Properties:
+      KeyPolicy: {
+        "Version": "2012-10-17",
+        "Id": "key-default-1",
+        "Statement": [
+          {
+            "Sid": "Enable IAM User Permissions",
+            "Effect": "Allow",
+            "Principal": {
+              "AWS": !Sub "arn:${AWS::Partition}:iam::${AWS::AccountId}:root"
+            },
+            "Action": "kms:*",
+            "Resource": "*"
+          }
+        ]
+      }
+Outputs:
+  ControlPlaneRoleArn:
+    Value: !GetAtt ControlPlaneRole.Arn
+    Export:
+      Name: AwsqsEksClusterContractTestControlPlaneRoleArn
+  Subnet1:
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet1AID
+    Export:
+      Name: AwsqsEksClusterContractTestPrivateSubnet1ID
+  Subnet2:
+    Value: !GetAtt VPCStack.Outputs.PrivateSubnet2AID
+    Export:
+      Name: AwsqsEksClusterContractTestPrivateSubnet2ID
+  Subnet3:
+    Value: !GetAtt VPCStack.Outputs.PublicSubnet1ID
+    Export:
+      Name: AwsqsEksClusterContractTestPublicSubnet1ID
+  Subnet4:
+    Value: !GetAtt VPCStack.Outputs.PublicSubnet2ID
+    Export:
+      Name: AwsqsEksClusterContractTestPublicSubnet2ID
+  SecurityGroup:
+    Value: !Ref ControlPlaneSecurityGroup
+    Export:
+      Name: AwsqsEksClusterContractTestSecurityGroup
+  KmsArn:
+    Value: !GetAtt KMSKey.Arn
+    Export:
+      Name: AwsqsEksClusterContractTestKmsKey
