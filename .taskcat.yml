@@ -1,5 +1,5 @@
 project:
-  name: quickstart-amazon-eks
+  name: cloudformation-base-eks
   owner: quickstart-eng@amazon.com
   shorten_stack_name: true
   regions:
@@ -78,6 +78,7 @@ tests:
     regions:
       - eu-central-1
       - us-west-2
+      - us-east-1
   metrics-server:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
