@@ -469,36 +469,36 @@ Resources:
   GetVpcCidr:
     Type: Custom::ResourceReader
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: !Sub >-
         ec2 describe-vpcs --vpc-id ${VPCID} --query 'Vpcs[0].{CidrBlock: CidrBlock}'
       IdField: CidrBlock
   GetNodeRoleArn:
     Type: Custom::ResourceReader
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: !Sub
         - iam get-role --role-name ${NodeInstanceRoleName} --query 'Role'
         - NodeInstanceRoleName: !Sub
-          - eks-quickstart-${Suffix}
+          - cloudformation-base-eks-${Suffix}
           - Suffix: !If [IsManaged, ManagedNodeInstance, UnmanagedNodeInstance]
       IdField: Arn
   GetNodeInstanceProfileArn:
     Type: Custom::ResourceReader
     Condition: IsUnmanaged
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: !Sub
         - >-
           iam list-instance-profiles --query 'InstanceProfiles[].{role: Roles[0].RoleName, arn: Arn}[?role==`${NodeInstanceRoleName}`] | [0]'
         - NodeInstanceRoleName: !Sub
-          - eks-quickstart-${Suffix}
+          - cloudformation-base-eks-${Suffix}
           - Suffix: !If [IsManaged, ManagedNodeInstance, UnmanagedNodeInstance]
       IdField: arn
   GetClusterEndpoint:
     Type: Custom::ResourceReader
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: !Sub >-
         eks describe-cluster --name ${EKSClusterName} --query '{Endpoint: cluster.endpoint, CaData: cluster.certificateAuthority.data}'
       IdField: Endpoint
@@ -506,21 +506,21 @@ Resources:
     Type: Custom::ResourceReader
     Condition: UseClusterNodeSecurityGroup
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: !Sub >-
         eks describe-cluster --name ${EKSClusterName} --query '{SGID: cluster.resourcesVpcConfig.clusterSecurityGroupId}'
       IdField: SGID
   CleanupNodeSecurityGroupDependencies:
     Type: Custom::CleanupSecurityGroupDependencies
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-CleanupSecurityGroupDependencies
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-CleanupSecurityGroupDependencies
       SecurityGroups: [!If [UseClusterNodeSecurityGroup, !Ref GetClusterNodeSecurityGroup, !Ref NodeSecurityGroupId]]
   GetManagedASG:
     Type: Custom::ResourceReader
     Condition: CreateManagedNodeGroup
     DependsOn: ManagedNodeGroup
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: !Sub >-
         autoscaling describe-auto-scaling-groups --query 'AutoScalingGroups[? Tags[? Key==`eks:cluster-name` && Value==`${EKSClusterName}`] && Tags[? Key==`eks:nodegroup-name` && Value==`${ManagedNodeGroup.NodegroupName}`]] | [0] | {Id: AutoScalingGroupName}'
       IdField: Id
@@ -743,7 +743,7 @@ Resources:
                           systemctl restart kubelet
                         - ''
                       NodeInstanceRoleName: !Sub
-                        - eks-quickstart-${Suffix}
+                        - cloudformation-base-eks-${Suffix}
                         - Suffix: !If [IsManaged, ManagedNodeInstance, UnmanagedNodeInstance]
         MetadataOptions:
           HttpPutResponseHopLimit: !Ref EC2MetadataPutResponseHopLimit

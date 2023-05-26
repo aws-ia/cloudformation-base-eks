@@ -114,7 +114,7 @@ Resources:
               - NodeRole: !If
                   - CustomNodeRoleProvided
                   - !Ref CustomNodeRole
-                  - eks-quickstart-UnmanagedNodeInstance
+                  - cloudformation-base-eks-UnmanagedNodeInstance
             Username: system:node:{{EC2PrivateDNSName}}
             Groups: [system:bootstrappers, system:nodes, eks:kube-proxy-windows]
           - Arn: !Ref FunctionRoleArn
@@ -159,12 +159,12 @@ Resources:
   CleanupLoadBalancers:
     Type: Custom::CleanupLoadBalancers
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-CleanupLoadBalancers
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-CleanupLoadBalancers
       ClusterName: !Ref EKSClusterName
   CallerArn:
     Type: Custom::GetCallerArn
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-GetCallerArn
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-GetCallerArn
   ClusterOIDCProvider:
     Type: AWS::IAM::OIDCProvider
     Properties:

@@ -2,18 +2,18 @@
 
 eval "$(pyenv init -)" &> /dev/null || true
 
-pyenv shell eks-quickstart-dev || { echo 'Have you run "make dev" to setup your dev environment ?' ; exit 1 ; }
+pyenv shell cloudformation-base-eks-dev || { echo 'Have you run "make dev" to setup your dev environment ?' ; exit 1 ; }
 
 # find account stack
 ACC_STACK=Yes
 for r in $(aws ec2 describe-regions --region ${AWS_REGION} --profile ${AWS_PROFILE} --output text --query Regions[].RegionName); do
-  if [ "$(aws cloudformation describe-stacks --query 'Stacks[].{StackId: StackId, Version: Tags[?Key==`eks-quickstart`]|[0].Value}|[?Version==`AccountSharedResources`]|[0].StackId' --profile ${AWS_PROFILE} --region $r --output text)" != "None" ] ; then
+  if [ "$(aws cloudformation describe-stacks --query 'Stacks[].{StackId: StackId, Version: Tags[?Key==`cloudformation-base-eks`]|[0].Value}|[?Version==`AccountSharedResources`]|[0].StackId' --profile ${AWS_PROFILE} --region $r --output text)" != "None" ] ; then
     ACC_STACK=No
     break
   fi
 done
 REGION_STACK=Yes
-if [ "$(aws cloudformation describe-stacks --query 'Stacks[].{StackId: StackId, Version: Tags[?Key==`eks-quickstart`]|[0].Value}|[?Version==`RegionalSharedResources`]|[0].StackId' --region ${AWS_REGION} --output text)" != "None" ] ; then
+if [ "$(aws cloudformation describe-stacks --query 'Stacks[].{StackId: StackId, Version: Tags[?Key==`cloudformation-base-eks`]|[0].Value}|[?Version==`RegionalSharedResources`]|[0].StackId' --region ${AWS_REGION} --output text)" != "None" ] ; then
   REGION_STACK=No
 fi
 

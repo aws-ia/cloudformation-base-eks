@@ -8,7 +8,7 @@ Resources:
   CopyZipsRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-CopyZips
+      RoleName: cloudformation-base-eks-CopyZips
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -29,7 +29,7 @@ Resources:
   GenerateClusterNameRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-GenerateClusterName
+      RoleName: cloudformation-base-eks-GenerateClusterName
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -42,7 +42,7 @@ Resources:
   ResourceReaderRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-ResourceReader
+      RoleName: cloudformation-base-eks-ResourceReader
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -56,7 +56,7 @@ Resources:
   CreateVpcRoleRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-CreateVpcRole
+      RoleName: cloudformation-base-eks-CreateVpcRole
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -85,7 +85,7 @@ Resources:
   DeleteBucketContentsRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-DeleteBucketContents
+      RoleName: cloudformation-base-eks-DeleteBucketContents
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -98,7 +98,7 @@ Resources:
   ControlPlaneRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-ControlPlane
+      RoleName: cloudformation-base-eks-ControlPlane
       Policies:
         - PolicyName: ec2-describe-policy
           PolicyDocument:
@@ -133,7 +133,7 @@ Resources:
               resource. As of 2023-02-05, cfn-lint falsely reports this as an
               issue.
     Properties:
-      RoleName: eks-quickstart-CleanupLoadBalancers
+      RoleName: cloudformation-base-eks-CleanupLoadBalancers
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -183,7 +183,7 @@ Resources:
   CleanupSecurityGroupDependenciesRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-CleanupSecurityGroupDependencies
+      RoleName: cloudformation-base-eks-CleanupSecurityGroupDependencies
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -220,7 +220,7 @@ Resources:
   CleanupLambdasRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-CleanupLambdas
+      RoleName: cloudformation-base-eks-CleanupLambdas
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -247,7 +247,7 @@ Resources:
   GetCallerArnRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-GetCallerArn
+      RoleName: cloudformation-base-eks-GetCallerArn
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -272,7 +272,7 @@ Resources:
   RegisterTypeRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-RegisterType
+      RoleName: cloudformation-base-eks-RegisterType
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -324,7 +324,7 @@ Resources:
   NodeSGRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-NodeSG
+      RoleName: cloudformation-base-eks-NodeSG
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -345,7 +345,7 @@ Resources:
   FargateExecutionRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-FargateExecution
+      RoleName: cloudformation-base-eks-FargateExecution
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -359,7 +359,7 @@ Resources:
   FargateProfileRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-FargateProfile
+      RoleName: cloudformation-base-eks-FargateProfile
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -395,7 +395,7 @@ Resources:
   QuickStartParameterResolverRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-QuickStartParameterResolver
+      RoleName: cloudformation-base-eks-QuickStartParameterResolver
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -435,7 +435,7 @@ Resources:
   UnmanagedNodeInstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-UnmanagedNodeInstance
+      RoleName: cloudformation-base-eks-UnmanagedNodeInstance
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -463,7 +463,7 @@ Resources:
   ManagedNodeInstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-ManagedNodeInstance
+      RoleName: cloudformation-base-eks-ManagedNodeInstance
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -492,7 +492,7 @@ Resources:
   CloudFormationVPCRoleCreationRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: eks-quickstart-CloudFormationVPCRoleCreation
+      RoleName: cloudformation-base-eks-CloudFormationVPCRoleCreation
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:

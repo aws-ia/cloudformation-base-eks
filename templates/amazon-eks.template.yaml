@@ -139,7 +139,7 @@ Parameters:
     Default: Managed
 Mappings:
   Config:
-    Prefix: { Value: eks-quickstart }
+    Prefix: { Value: cloudformation-base-eks }
     ParameterPrefix: { Value: /quickstart/amazon-eks }
     Namespace:
       Prometheus: prometheus
@@ -396,7 +396,7 @@ Resources:
   CloudFormationKubernetesVPCRoleExists:
     Type: Custom::ResourceReader
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-ResourceReader
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-ResourceReader
       AwsCliCommand: >
         iam list-roles --query 'Roles[?RoleName==`CloudFormation-Kubernetes-VPC`].RoleName | {RoleName: [0]}'
       IdField: RoleName
@@ -498,12 +498,12 @@ Resources:
     Type: Custom::CleanupLambdas
     DependsOn: CleanupControlPlaneSecurityGroupDependencies
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-CleanupLambdas
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-CleanupLambdas
       SecurityGroupId: !GetAtt ControlPlaneSecurityGroup.GroupId
   CleanupControlPlaneSecurityGroupDependencies:
     Type: Custom::CleanupSecurityGroupDependencies
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-CleanupSecurityGroupDependencies
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-CleanupSecurityGroupDependencies
       Region: !Ref AWS::Region
       SecurityGroups: [!GetAtt ControlPlaneSecurityGroup.GroupId]
   ControlPlaneSecurityGroup:
@@ -550,7 +550,7 @@ Resources:
                   - 2AZDeployment
                   - !Sub ${PrivateSubnet1ID},${PrivateSubnet2ID}
                   - !Ref PrivateSubnet1ID
-        RoleArn: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-ControlPlane
+        RoleArn: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-ControlPlane
         AdditionalEKSAdminUserArn: !Ref AdditionalEKSAdminUserArn
         AdditionalEKSAdminRoleArn: !Ref AdditionalEKSAdminRoleArn
         KubernetesVersion: ~~/<ConfigSetName>/controlplane/KubernetesVersion~~
@@ -602,7 +602,7 @@ Resources:
            S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
       Parameters:
         ClusterName: !GetAtt EKSControlPlane.Outputs.EKSName
-        FargateExecutionRoleArn: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-FargateExecution
+        FargateExecutionRoleArn: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-FargateExecution
         Namespaces: !Ref FargateNamespaces
         Labels: !Ref FargateLabels
         Subnets: !If
@@ -634,7 +634,7 @@ Resources:
     Type: Custom::GenerateClusterName
     Condition: GenerateClusterName
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-GenerateClusterName
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-GenerateClusterName
   TestSuiteStack:
     Type: AWS::CloudFormation::Stack
     Condition: DeployTestStack
@@ -670,7 +670,7 @@ Resources:
     Type: Custom::KubeManifest
     Condition: EnableProxy
     Properties:
-      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:eks-quickstart-KubeManifest-${EKSControlPlane.Outputs.EKSName}
+      ServiceToken: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:cloudformation-base-eks-KubeManifest-${EKSControlPlane.Outputs.EKSName}
       HttpProxy: !Ref HttpProxy
       VpcId: !Ref VPCID
       ClusterName: !GetAtt EKSControlPlane.Outputs.EKSName

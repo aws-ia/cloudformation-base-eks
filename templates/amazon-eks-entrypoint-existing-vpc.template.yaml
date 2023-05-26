@@ -564,7 +564,7 @@ Resources:
         - https://${S3Bucket}.s3.${S3Region}.${AWS::URLSuffix}/${QSS3KeyPrefix}templates/amazon-eks-per-account-resources.template.yaml
         - S3Region: !If [UsingDefaultBucket, !Ref AWS::Region, !Ref QSS3BucketRegion]
           S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
-      Tags: [{ Key: eks-quickstart, Value: AccountSharedResources }]
+      Tags: [{ Key: cloudformation-base-eks, Value: AccountSharedResources }]
   RegionalSharedResources:
     Type: AWS::CloudFormation::Stack
     Condition: CreatePerRegionSharedResources
@@ -580,7 +580,7 @@ Resources:
       Parameters:
         QSS3BucketName: !Ref QSS3BucketName
         QSS3KeyPrefix: !Ref QSS3KeyPrefix
-      Tags: [{ Key: eks-quickstart, Value: RegionalSharedResources }]
+      Tags: [{ Key: cloudformation-base-eks, Value: RegionalSharedResources }]
   AdvancedConfigDefaultsStack:
     Type: AWS::CloudFormation::Stack
     Condition: CreateAdvancedConfigWithDefaults

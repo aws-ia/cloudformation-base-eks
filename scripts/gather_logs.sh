@@ -2,7 +2,7 @@
 
 REGION=$1
 STACK_ID=$2
-FUNCTIONS="eks-quickstart- awsqs-kubernetes-resource-proxy- EKS-QuickStart-Kube QuickStart-ParameterResolver"
+FUNCTIONS="cloudformation-base-eks- awsqs-kubernetes-resource-proxy- cloudformation-base-eks-Kube QuickStart-ParameterResolver"
 TYPE_LOG_GROUPS="/cloudformation/registry/awsqs-kubernetes-helm /cloudformation/registry/awsqs-kubernetes-get /cloudformation/registry/awsqs-kubernetes-resource /cloudformation/registry/awsqs-eks-cluster"
 
 if [ -z $REGION ] || [ -z $STACK_ID ]; then

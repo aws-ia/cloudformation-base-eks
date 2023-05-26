@@ -45,7 +45,7 @@ then
   echo "cleaning RegionalSharedResources stacks..."
   for r in $REGIONS
   do
-    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`RegionalSharedResources` && Key==`eks-quickstart`]].StackId' --region $r --output text --profile ${PROFILE})
+    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`RegionalSharedResources` && Key==`cloudformation-base-eks`]].StackId' --region $r --output text --profile ${PROFILE})
     do
       echo "deleting $s"
       aws cloudformation delete-stack --stack-name $s --region $r --profile ${PROFILE}
@@ -54,7 +54,7 @@ then
 
   for r in $REGIONS
   do
-    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`RegionalSharedResources` && Key==`eks-quickstart`]].StackId' --region $r --output text --profile ${PROFILE})
+    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`RegionalSharedResources` && Key==`cloudformation-base-eks`]].StackId' --region $r --output text --profile ${PROFILE})
     do
       aws cloudformation wait stack-delete-complete --stack-name $s --region $r --profile ${PROFILE}
     done
@@ -84,7 +84,7 @@ then
   echo "cleaning AccountSharedResources stacks..."
   for r in $REGIONS
   do
-    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`AccountSharedResources` && Key==`eks-quickstart`]].StackId' --region $r --output text --profile ${PROFILE})
+    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`AccountSharedResources` && Key==`cloudformation-base-eks`]].StackId' --region $r --output text --profile ${PROFILE})
     do
       echo "deleting $s"
       aws cloudformation delete-stack --stack-name $s --region $r --profile ${PROFILE}
@@ -93,7 +93,7 @@ then
 
   for r in $REGIONS
   do
-    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`AccountSharedResources` && Key==`eks-quickstart`]].StackId' --region $r --output text --profile ${PROFILE})
+    for s in $(aws cloudformation describe-stacks --query 'Stacks[? Tags[? Value==`AccountSharedResources` && Key==`cloudformation-base-eks`]].StackId' --region $r --output text --profile ${PROFILE})
     do
       aws cloudformation wait stack-delete-complete --stack-name $s --region $r --profile ${PROFILE}
     done

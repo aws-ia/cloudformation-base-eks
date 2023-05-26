@@ -54,12 +54,12 @@ Resources:
   LambdaZipsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+      BucketName: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
   CopyZipsRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
-      Roles: [eks-quickstart-CopyZips]
-      PolicyName: !Sub eks-quickstart-lambda-zip-bucket-access-${AWS::Region}
+      Roles: [cloudformation-base-eks-CopyZips]
+      PolicyName: !Sub cloudformation-base-eks-lambda-zip-bucket-access-${AWS::Region}
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -71,8 +71,8 @@ Resources:
   DeleteBucketContentsRolePolicy:
     Type: AWS::IAM::Policy
     Properties:
-      Roles: [eks-quickstart-DeleteBucketContents]
-      PolicyName: !Sub eks-quickstart-delete-bucket-contents-${AWS::Region}
+      Roles: [cloudformation-base-eks-DeleteBucketContents]
+      PolicyName: !Sub cloudformation-base-eks-delete-bucket-contents-${AWS::Region}
       PolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -96,11 +96,11 @@ Resources:
     Type: AWS::Lambda::Function
     DependsOn: CopyZipsRolePolicy
     Properties:
-      FunctionName: eks-quickstart-CopyZips
+      FunctionName: cloudformation-base-eks-CopyZips
       Description: Copies objects from a source S3 bucket to a destination.
       Handler: index.handler
       Runtime: python3.9
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CopyZips
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-CopyZips
       Timeout: 900
       Code:
         S3Bucket: !If [UsingDefaultBucket, !Sub '${QSS3BucketName}-${AWS::Region}', !Ref QSS3BucketName]
@@ -162,7 +162,7 @@ Resources:
     Type: AWS::Lambda::LayerVersion
     DependsOn: CopyZips
     Properties:
-      LayerName: eks-quickstart-Kubectl
+      LayerName: cloudformation-base-eks-Kubectl
       Description: !Sub kubectl layer - ${RandomStr}
       Content:
         S3Bucket: !Ref LambdaZipsBucket
@@ -171,7 +171,7 @@ Resources:
     Type: AWS::Lambda::LayerVersion
     DependsOn: CopyZips
     Properties:
-      LayerName: eks-quickstart-AwsCli
+      LayerName: cloudformation-base-eks-AwsCli
       Description: !Sub aws cli layer - ${RandomStr}
       Content:
         S3Bucket: !Ref LambdaZipsBucket
@@ -180,7 +180,7 @@ Resources:
     Type: AWS::Lambda::LayerVersion
     DependsOn: CopyZips
     Properties:
-      LayerName: eks-quickstart-CrHelper
+      LayerName: cloudformation-base-eks-CrHelper
       Description: !Sub crhelper layer - ${RandomStr}
       CompatibleRuntimes: [python3.7, python3.8, python3.9]
       Content:
@@ -189,57 +189,57 @@ Resources:
   CleanupLoadBalancersFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-CleanupLoadBalancers
+      FunctionName: cloudformation-base-eks-CleanupLoadBalancers
       Handler: index.handler
       MemorySize: 128
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CleanupLoadBalancers
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-CleanupLoadBalancers
       Runtime: python3.9
       Timeout: 900
       Layers: [!Ref CrHelperLayer]
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CleanupLoadBalancers/lambda.zip
   CleanupLambdasFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-CleanupLambdas
+      FunctionName: cloudformation-base-eks-CleanupLambdas
       Handler: index.handler
       MemorySize: 128
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CleanupLambdas
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-CleanupLambdas
       Runtime: python3.9
       Timeout: 900
       Layers: [!Ref CrHelperLayer]
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CleanupLambdas/lambda.zip
   GenerateClusterNameFunction:
     Type: AWS::Lambda::Function
     DependsOn: CopyZips
     Properties:
-      FunctionName: eks-quickstart-GenerateClusterName
+      FunctionName: cloudformation-base-eks-GenerateClusterName
       Handler: index.handler
       Runtime: python3.9
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-GenerateClusterName
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-GenerateClusterName
       Timeout: 900
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/GenerateClusterName/lambda.zip
   RegisterTypeFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-RegisterType
+      FunctionName: cloudformation-base-eks-RegisterType
       Handler: index.handler
       MemorySize: 128
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-RegisterType
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-RegisterType
       Layers: [!Ref CrHelperLayer]
       Runtime: python3.8
         # Bumping this requires CloudFormation Registry interop support
       Timeout: 900
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/RegisterType/lambda.zip
   RegisterEksClusterType:
     Type: Custom::RegisterType
@@ -257,7 +257,7 @@ Resources:
       Version: 3.1.5
       RandomStr: !Ref RandomStr
       TypeName: AWSQS::EKS::Cluster
-      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/EksClusterResource/awsqs-eks-cluster.zip
+      SchemaHandlerPackage: !Sub s3://cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/EksClusterResource/awsqs-eks-cluster.zip
       IamPolicy:
         Version: 2012-10-17
         Statement:
@@ -309,7 +309,7 @@ Resources:
       TypeName: AWSQS::Kubernetes::Helm
       Version: 3.1.2
       RandomStr: !Ref RandomStr
-      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/HelmReleaseResource/awsqs-kubernetes-helm.zip
+      SchemaHandlerPackage: !Sub s3://cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/HelmReleaseResource/awsqs-kubernetes-helm.zip
       IamPolicy:
         Version: 2012-10-17
         Statement:
@@ -359,7 +359,7 @@ Resources:
       TypeName: AWSQS::Kubernetes::Get
       Version: 3.2.3
       RandomStr: !Ref RandomStr
-      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
+      SchemaHandlerPackage: !Sub s3://cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
       IamPolicy:
         Version: 2012-10-17
         Statement:
@@ -416,7 +416,7 @@ Resources:
       TypeName: AWSQS::Kubernetes::Resource
       Version: 3.2.3
       RandomStr: !Ref RandomStr
-      SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip
+      SchemaHandlerPackage: !Sub s3://cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip
       IamPolicy:
         Version: 2012-10-17
         Statement:
@@ -457,100 +457,100 @@ Resources:
   CleanupSecurityGroupDependenciesFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-CleanupSecurityGroupDependencies
+      FunctionName: cloudformation-base-eks-CleanupSecurityGroupDependencies
       Handler: index.handler
       MemorySize: 128
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CleanupSecurityGroupDependencies
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-CleanupSecurityGroupDependencies
       Layers: [!Ref CrHelperLayer]
       Runtime: python3.9
       Timeout: 900
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CleanupSecurityGroupDependencies/lambda.zip
   DeleteBucketContentsFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-DeleteBucketContents
+      FunctionName: cloudformation-base-eks-DeleteBucketContents
       Handler: index.handler
       MemorySize: 128
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-DeleteBucketContents
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-DeleteBucketContents
       Runtime: python3.9
       Timeout: 900
       Layers: [!Ref CrHelperLayer]
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/DeleteBucketContents/lambda.zip
   GetCallerArnFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-GetCallerArn
+      FunctionName: cloudformation-base-eks-GetCallerArn
       Handler: index.handler
       MemorySize: 128
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-GetCallerArn
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-GetCallerArn
       Runtime: python3.9
       Timeout: 900
       Layers: [!Ref CrHelperLayer]
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/GetCallerArn/lambda.zip
   NodeSGFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-NodeSG
+      FunctionName: cloudformation-base-eks-NodeSG
       Description: Fetches the Security Group ID for a given EKS Managed Node Group
       Handler: index.handler
       Runtime: python3.9
-      Role:  !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-NodeSG
+      Role:  !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-NodeSG
       Timeout: 900
       Layers: [!Ref CrHelperLayer]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/NodeSG/lambda.zip
   FargateProfileFunction:
     Type: AWS::Lambda::Function
     Properties:
-      FunctionName: eks-quickstart-FargateProfile
+      FunctionName: cloudformation-base-eks-FargateProfile
       Handler: index.handler
       MemorySize: 512
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-FargateProfile
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-FargateProfile
       Runtime: python3.9
       Timeout: 900
       Layers: [!Ref CrHelperLayer]
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/FargateProfile/lambda.zip
   ResourceReaderFunction:
     DependsOn: CopyZips
     Type: AWS::Lambda::Function
     Properties:
       MemorySize: 512
-      FunctionName: eks-quickstart-ResourceReader
+      FunctionName: cloudformation-base-eks-ResourceReader
       Description: >-
         Performs an AWS CLI command and returns the json result. Used to get
         the state of existing resources.
       Handler: index.handler
       Runtime: python3.9
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-ResourceReader
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-ResourceReader
       Timeout: 900
       Tags: [{ Key: RandomStr, Value: !Ref RandomStr }]
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/ResourceReader/lambda.zip
   QuickStartParameterResolverFunction:
     Type: AWS::Lambda::Function
     DependsOn: CopyZips
     Properties:
-      FunctionName: eks-quickstart-QuickStartParameterResolver
+      FunctionName: cloudformation-base-cloudformation-base-eksParameterResolver
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/QuickStartParameterResolver/lambda.zip
       Handler: index.handler
       Runtime: python3.9
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-QuickStartParameterResolver
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-cloudformation-base-eksParameterResolver
       Timeout: 900
   QuickStartParameterResolverFunctionPermissions:
     Type: AWS::Lambda::Permission
@@ -568,13 +568,13 @@ Resources:
     Type: AWS::Lambda::Function
     DependsOn: CopyZips
     Properties:
-      FunctionName: eks-quickstart-CloudFormationVPCRoleCreation
+      FunctionName: cloudformation-base-eks-CloudFormationVPCRoleCreation
       Description: >-
         Creates the CloudFormationVPCRoleCreation if it does not yet exist.
       Handler: index.handler
       Runtime: python3.9
-      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-quickstart-CloudFormationVPCRoleCreation
+      Role: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cloudformation-base-eks-CloudFormationVPCRoleCreation
       Timeout: 900
       Code:
-        S3Bucket: !Sub eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}
+        S3Bucket: !Sub cloudformation-base-eks-lambdazips-${AWS::Region}-${AWS::AccountId}
         S3Key: !Sub ${QSS3KeyPrefix}functions/packages/CloudFormationVPCRoleCreation/lambda.zip
