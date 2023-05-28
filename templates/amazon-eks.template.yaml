@@ -140,7 +140,7 @@ Parameters:
 Mappings:
   Config:
     Prefix: { Value: cloudformation-base-eks }
-    ParameterPrefix: { Value: /quickstart/amazon-eks }
+    ParameterPrefix: { Value: /cloudformation/base-eks }
     Namespace:
       Prometheus: prometheus
   # RegionMap:

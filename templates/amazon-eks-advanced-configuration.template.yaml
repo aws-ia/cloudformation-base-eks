@@ -460,13 +460,13 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/EKSPrivateAccessEndpoint
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/EKSPrivateAccessEndpoint
       Value: !Sub '{ "Value": "${EKSPrivateAccessEndpoint}" }'
   EKSClusterLoggingTypesParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/EKSClusterLoggingTypes
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/EKSClusterLoggingTypes
       Value: !Sub
         - '{ "Value": "${JoinedEKSClusterLoggingTypes}" }'
         - JoinedEKSClusterLoggingTypes: !Join [',', !Ref EKSClusterLoggingTypes]
@@ -474,19 +474,19 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/EKSEncryptSecrets
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/EKSEncryptSecrets
       Value: !Sub '{ "Value": "${EKSEncryptSecrets}" }'
   EKSEncryptSecretsKmsKeyArnParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/EKSEncryptSecretsKmsKeyArn
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/EKSEncryptSecretsKmsKeyArn
       Value: !Sub '{ "Value": "${EKSEncryptSecretsKmsKeyArn}" }'
   EKSPublicAccessCIDRsParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/EKSPublicAccessCIDRs
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/EKSPublicAccessCIDRs
       Value: !Sub
         - '{ "Value": "${JoinedEKSPublicAccessCIDRs}" }'
         - JoinedEKSPublicAccessCIDRs: !Join [',', !Ref EKSPublicAccessCIDRs]
@@ -494,91 +494,91 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/NodeGroupName
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/NodeGroupName
       Value: !Sub '{ "Value": "${NodeGroupName}" }'
   NodeVolumeSizeParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/NodeVolumeSize
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/NodeVolumeSize
       Value: !Sub '{ "Value": "${NodeVolumeSize}" }'
   CustomAmiIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/CustomAmiId
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/CustomAmiId
       Value: !Sub '{ "Value": "${CustomAmiId}" }'
   AmiRootVolumeDeviceNameParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/AmiRootVolumeDeviceName
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/AmiRootVolumeDeviceName
       Value: !Sub '{ "Value": "${AmiRootVolumeDeviceName}" }'
   NodeSecurityGroupIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/NodeSecurityGroupId
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/NodeSecurityGroupId
       Value: !Sub '{ "Value": "${NodeSecurityGroupId}" }'
   TaintsParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/Taints
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/Taints
       Value: !Sub '{ "Value": "${Taints}" }'
   LabelsParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/Labels
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/Labels
       Value: !Sub '{ "Value": "${Labels}" }'
   LaunchTemplateVersionParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/LaunchTemplateVersion
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/LaunchTemplateVersion
       Value: !Sub '{ "Value": "${LaunchTemplateVersion}" }'
   LaunchTemplateIdParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/LaunchTemplateId
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/LaunchTemplateId
       Value: !Sub '{ "Value": "${LaunchTemplateId}" }'
   NodeInstanceType2Parameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/NodeInstanceType2
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/NodeInstanceType2
       Value: !Sub '{ "Value": "${NodeInstanceType2}" }'
   NodeInstanceType3Parameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/NodeInstanceType3
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/NodeInstanceType3
       Value: !Sub '{ "Value": "${NodeInstanceType3}" }'
   NodeInstanceType4Parameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/NodeInstanceType4
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/NodeInstanceType4
       Value: !Sub '{ "Value": "${NodeInstanceType4}" }'
   OnDemandPercentageParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/OnDemandPercentage
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/OnDemandPercentage
       Value: !Sub '{ "Value": "${OnDemandPercentage}" }'
   KubernetesVersionParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/KubernetesVersion
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/KubernetesVersion
       Value: !Sub '{ "Value": "${KubernetesVersion}" }'
   KubectlVersionParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/controlplane/KubectlVersion
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/controlplane/KubectlVersion
       Value: !Sub
         - '{ "Value": "${KubectlVersion}" }'
         - KubectlVersion: !FindInMap [KubernetesVersion, !Ref KubernetesVersion, KubectlVersion]
@@ -586,109 +586,109 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionOS
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionOS
       Value: !Sub '{ "Value": "${BastionOS}" }'
   BastionBootstrapScriptParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionBootstrapScript
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionBootstrapScript
       Value: !Sub '{ "Value": "${BastionBootstrapScript}" }'
   BastionInstanceTypeParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionInstanceType
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionInstanceType
       Value: !Sub '{ "Value": "${BastionInstanceType}" }'
   BastionRootVolumeSizeParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionRootVolumeSize
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionRootVolumeSize
       Value: !Sub '{ "Value": "${BastionRootVolumeSize}" }'
   BastionIAMRoleNameParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionIAMRoleName
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionIAMRoleName
       Value: !Sub '{ "Value": "${BastionIAMRoleName}" }'
   BastionEnableX11ForwardingParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionEnableX11Forwarding
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionEnableX11Forwarding
       Value: !Sub '{ "Value": "${BastionEnableX11Forwarding}" }'
   BastionEnableTCPForwardingParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionEnableTCPForwarding
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionEnableTCPForwarding
       Value: !Sub '{ "Value": "${BastionEnableTCPForwarding}" }'
   BastionVariablesParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/BastionVariables
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/BastionVariables
       Value: !Sub '{ "Value": "${BastionVariables}" }'
   OnDemandBastionPercentageParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/bastion/OnDemandPercentage
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/bastion/OnDemandPercentage
       Value: !Sub '{ "Value": "${OnDemandBastionPercentage}" }'
   EfsPerformanceModeParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/efs/EfsPerformanceMode
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/efs/EfsPerformanceMode
       Value: !Sub '{ "Value": "${EfsPerformanceMode}" }'
   EfsThroughputModeParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/efs/EfsThroughputMode
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/efs/EfsThroughputMode
       Value: !Sub '{ "Value": "${EfsThroughputMode}" }'
   EfsProvisionedThroughputInMibpsParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/efs/EfsProvisionedThroughputInMibps
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/efs/EfsProvisionedThroughputInMibps
       Value: !Sub '{ "Value": "${EfsProvisionedThroughputInMibps}" }'
   WindowsNodeEditionParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/windows-nodegroup/WindowsNodeEdition
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/windows-nodegroup/WindowsNodeEdition
       Value: !Sub '{ "Value": "${WindowsNodeEdition}" }'
   WindowsNodeVersionParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/windows-nodegroup/WindowsNodeVersion
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/windows-nodegroup/WindowsNodeVersion
       Value: !Sub '{ "Value": "${WindowsNodeVersion}" }'
   EC2MetadataPutResponseHopLimitParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/EC2MetadataPutResponseHopLimit
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/EC2MetadataPutResponseHopLimit
       Value: !Sub '{ "Value": "${EC2MetadataPutResponseHopLimit}" }'
   EC2MetadataHttpTokensParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/EC2MetadataHttpTokens
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/EC2MetadataHttpTokens
       Value: !Sub '{ "Value": "${EC2MetadataHttpTokens}" }'
   MaxNodesUnavailableParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/MaxNodesUnavailable
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/MaxNodesUnavailable
       Value: !Sub '{ "Value": "${MaxNodesUnavailable}" }'
   MaxNodesUnavailablePercentageParameter:
     Type: AWS::SSM::Parameter
     Properties:
       Type: String
-      Name: !Sub /quickstart/amazon-eks/${ConfigSetName}/default-nodegroup/MaxNodesUnavailablePercentage
+      Name: !Sub /cloudformation/base-eks/${ConfigSetName}/default-nodegroup/MaxNodesUnavailablePercentage
       Value: !Sub '{ "Value": "${MaxNodesUnavailablePercentage}" }'
 Outputs:
   ConfigSetName:
