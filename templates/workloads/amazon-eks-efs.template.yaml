@@ -1,0 +1,109 @@
+# Credit to [David Schott](https://github.com/schottsfired) from CloudBees for creating the original version of this
+# template https://github.com/aws-quickstart/quickstart-cloudbees-core/blob/master/templates/cloudbees-core-efs.template.yaml
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploys an EFS file system and StorageClass (qs-1pipqrqhi).
+Metadata:
+  cfn-lint: { config: { ignore_checks: [W9002, W9003, W9004, W9006] } }
+Parameters:
+  NodeGroupSecurityGroup:
+    Type: AWS::EC2::SecurityGroup::Id
+  PrivateSubnet1ID:
+    Type: AWS::EC2::Subnet::Id
+  PrivateSubnet2ID:
+    Type: String
+    Default: ''
+  PrivateSubnet3ID:
+    Type: String
+    Default: ''
+  PerformanceMode:
+    Type: String
+    AllowedValues: [generalPurpose, maxIO]
+    Default: generalPurpose
+  EfsProvisionedThroughputInMibps:
+    Type: Number
+    MinValue: 0
+    MaxValue: 1024
+    Default: 0
+  ThroughputMode:
+    Type: String
+    AllowedValues: [bursting, provisioned]
+    Default: bursting
+  ClusterName:
+    Type: String
+  DirectoryPermissions:
+    Type: String
+    AllowedPattern: ^7[0-7]{2}$
+    Default: 700
+Rules:
+  ProvisionedThroughput:
+    RuleCondition: !Equals [!Ref ThroughputMode, provisioned]
+    Assertions:
+      - Assert: !Not [!Equals ['0', !Ref EfsProvisionedThroughputInMibps]]
+        AssertDescription: >-
+          EfsProvisionedThroughputInMibps must be greater than 0 when
+          ThroughputMode is provisioned.
+  BurstingThroughput:
+    RuleCondition: !Equals [!Ref ThroughputMode, bursting]
+    Assertions:
+      - Assert:  !Equals ['0', !Ref EfsProvisionedThroughputInMibps]
+        AssertDescription: >-
+          EfsProvisionedThroughputInMibps must be 0 when ThroughputMode is
+          bursting.
+Conditions:
+  IsProvisioned: !Equals [!Ref ThroughputMode, provisioned]
+  3AZDeployment: !Not [!Equals [!Ref PrivateSubnet3ID, '']]
+  2AZDeployment: !Or
+    - !Not [!Equals [!Ref PrivateSubnet2ID, '']]
+    - !Not [!Equals [!Ref PrivateSubnet3ID, '']]
+Resources:
+  EFSFileSystem:
+    Type: AWS::EFS::FileSystem
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+    Properties:
+      Encrypted: true
+      PerformanceMode: !Ref PerformanceMode
+      ProvisionedThroughputInMibps: !If [IsProvisioned, !Ref EfsProvisionedThroughputInMibps, !Ref AWS::NoValue]
+      ThroughputMode: !Ref ThroughputMode
+      FileSystemTags:
+        - Key: Name
+          Value: !Ref ClusterName
+  MountTargetPrivateSubnet1:
+    Type: AWS::EFS::MountTarget
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: [!Ref NodeGroupSecurityGroup]
+      SubnetId: !Ref PrivateSubnet1ID
+  MountTargetPrivateSubnet2:
+    Type: AWS::EFS::MountTarget
+    Condition: 2AZDeployment
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: [!Ref NodeGroupSecurityGroup]
+      SubnetId: !Ref PrivateSubnet2ID
+  MountTargetPrivateSubnet3:
+    Type: AWS::EFS::MountTarget
+    Condition: 3AZDeployment
+    Properties:
+      FileSystemId: !Ref EFSFileSystem
+      SecurityGroups: [!Ref NodeGroupSecurityGroup]
+      SubnetId: !Ref PrivateSubnet3ID
+  EfsStorageClass:
+    # https://github.com/kubernetes-sigs/aws-efs-csi-driver#storage-class-parameters-for-dynamic-provisioning
+    Type: AWSQS::Kubernetes::Resource
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Retain
+    Properties:
+      ClusterName: !Ref ClusterName
+      Namespace: kube-system
+      Manifest: !Sub |
+        apiVersion: storage.k8s.io/v1
+        kind: StorageClass
+        metadata:
+          name: efs-sc
+        provisioner: efs.csi.aws.com
+        parameters:
+          provisioningMode: efs-ap
+          fileSystemId: ${EFSFileSystem}
+          directoryPerms: "${DirectoryPermissions}"
+          basePath: "/${ClusterName}" # optional
