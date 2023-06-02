@@ -1,8 +1,4 @@
 cfnresponse
 requests
 urllib3<2
-botocore
-dateutil
-jmespath
 s3transfer
-six
