@@ -1,0 +1,5 @@
+This guide provides instructions for deploying the {partner-product-short-name} Quick Start into Amazon Elastic Kubernetes Service (Amazon EKS).
+
+This Quick Start deploys Grafana open-source visualization and resource-monitoring software for Amazon EKS. It deploys Grafana workspaces for you, and manages their provisioning, setup, scaling, and maintenance. You can focus instead on creating and sharing dashboards and visualizations to analyze your metrics, logs, and traces. 
+
+It is for developers, DevOps, security teams, and roles within an organization for building, deploying, and maintaining Amazon EKS applications.

@@ -1,0 +1,68 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deploys the prometheus Helm chart into an existing Kubernetes cluster (qs-1qde66ffn).
+Metadata:
+  LintSpellExclude:
+    - Prometheus
+  QuickStartDocumentation:
+    EntrypointName: Launch into an existing Amazon EKS cluster
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Prometheus for Amazon EKS configuration
+        Parameters:
+          - KubeClusterName
+          - Namespace
+          - OverrideValues
+    ParameterLabels:
+      KubeClusterName:
+        default: Amazon EKS cluster name
+      OverrideValues:
+        default: Override values
+      Namespace:
+        default: Namespace
+Parameters:
+  KubeClusterName:
+    Type: String
+    Description: Name of the Amazon EKS cluster to deploy Prometheus into.
+  OverrideValues:
+    Type: String
+    Description: (Optional) URI to a file containing custom values to pass to the Helm install. Can be `http(s)://` or `s3://`.
+    Default: ''
+  Namespace:
+    Type: String
+    Default: prometheus
+    Description: (Optional) Kubernetes namespace to deploy Prometheus into.
+Conditions:
+  SupplyOverrides: !Not [!Equals [!Ref OverrideValues, '']]
+Resources:
+  PrometheusNamespace:
+    Type: AWSQS::Kubernetes::Resource
+    Properties:
+      ClusterName: !Ref KubeClusterName
+      Namespace: kube-system
+      Manifest: !Sub |
+        kind: Namespace
+        apiVersion: v1
+        metadata:
+          name: ${Namespace}
+  PrometheusHelmChart:
+    Type: AWSQS::Kubernetes::Helm
+    DependsOn: PrometheusNamespace
+    Properties:
+      ClusterID: !Ref KubeClusterName
+      Namespace: !Ref Namespace
+      Repository: https://prometheus-community.github.io/helm-charts
+      Chart: prometheus-community/prometheus
+      Name: prometheus
+      ValueOverrideURL: !If [SupplyOverrides, !Ref OverrideValues, !Ref AWS::NoValue]
+      Values:
+        server.persistentVolume.storageClass: gp2
+        server.statefulSet.enabled: true
+        server.replicaCount: 2
+        server.service.sessionAffinity: ClientIP
+        alertmanager.persistentVolume.storageClass: gp2
+        alertmanager.statefulSet.enabled: true
+        alertmanager.replicaCount: 2
+Outputs:
+  PrometheusReleaseName:
+    Value: !Ref PrometheusHelmChart

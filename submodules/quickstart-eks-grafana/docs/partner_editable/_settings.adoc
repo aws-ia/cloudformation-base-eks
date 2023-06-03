@@ -1,0 +1,23 @@
+// Do not change this first attribute. Do change the others.
+:quickstart-team-name: AWS Quick Start team
+:quickstart-project-name: quickstart-eks-grafana
+:partner-product-name: Grafana for Amazon EKS
+// For the following attribute, if you have no short name, enter the same name as partner-product-name.
+:partner-product-short-name: Grafana
+// If there's no partner, comment partner-company-name and partner-contributors.
+//:partner-company-name: Example Company Name, Ltd.
+:doc-month: April
+:doc-year: 2021
+:deployment_time: 45-60 minutes
+//:partner-contributors: Shuai Ye, Michael McConnell, and John Smith, {partner-company-name}
+:quickstart-contributors: Sumit Joshi and Jay McConnell, AWS Quick Start team
+:default_deployment_region: us-east-2
+:eks_addin:
+:disable_regions:
+//links
+:launch_new_vpc: https://fwd.aws/QwWdd
+:launch_existing_vpc: https://fwd.aws/DjnpQ
+:launch_existing_cluster: https://fwd.aws/pDng5
+:template_new_vpc: https://fwd.aws/DgqPB
+:template_existing_vpc: https://fwd.aws/mbD5g
+:template_existing_cluster: https://fwd.aws/rxnDe
