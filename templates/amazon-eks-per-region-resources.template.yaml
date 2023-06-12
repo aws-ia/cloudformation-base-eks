@@ -130,10 +130,10 @@ Resources:
         - functions/packages/KubectlLayer/lambda.zip
         - functions/packages/KubeGet/lambda.zip
         - functions/packages/KubeManifest/lambda.zip
-        - functions/packages/kubernetesResources/awsqs_kubernetes_apply.zip
-        - functions/packages/kubernetesResources/awsqs_kubernetes_apply_vpc.zip
-        - functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
-        - functions/packages/kubernetesResources/awsqs_kubernetes_get_vpc.zip
+        - functions/packages/KubernetesResources/awsqs_kubernetes_apply.zip
+        - functions/packages/KubernetesResources/awsqs_kubernetes_apply_vpc.zip
+        - functions/packages/KubernetesResources/awsqs_kubernetes_get.zip
+        - functions/packages/KubernetesResources/awsqs_kubernetes_get_vpc.zip
         - functions/packages/NodeSG/lambda.zip
         - functions/packages/QuickStartParameterResolver/lambda.zip
         - functions/packages/RegisterType/lambda.zip
