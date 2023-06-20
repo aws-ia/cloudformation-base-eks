@@ -325,7 +325,7 @@ Parameters:
   KubernetesVersion:
     Type: String
     Description: Kubernetes control plane version.
-    AllowedValues: [ 1.27, 1.26, 1.25, 1.24, 1.23 ]
+    AllowedValues: [1.27, 1.26, 1.25, 1.24, 1.23]
     Default: 1.27
   HttpProxy:
     Type: String
