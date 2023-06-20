@@ -54,12 +54,30 @@ tests:
       KubernetesVersion: '1.23'
     regions:
       - eu-south-1
-  v1-22:
+  v1-24:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
-      KubernetesVersion: '1.22'
+      KubernetesVersion: '1.24'
     regions:
       - us-east-2
+  v1-25:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      KubernetesVersion: '1.25'
+    regions:
+      - us-east-1
+  v1-26:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      KubernetesVersion: '1.26'
+    regions:
+      - us-west-2
+  v1-27:
+    parameters:
+      AvailabilityZones: $[taskcat_genaz_3]
+      KubernetesVersion: '1.27'
+    regions:
+      - us-west-1
   public-endpoint:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -151,7 +169,7 @@ tests:
       NodeGroupType: Unmanaged
       LoadBalancerController: Enabled
     regions:
-      - us-east-1
+      - eu-west-3
   bottlerocket:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -164,36 +182,6 @@ tests:
       ProvisionBastionHost: Disabled
     regions:
       - eu-west-1
-  snyk:
-    parameters:
-      AvailabilityZones: $[taskcat_genaz_3]
-      EKSPublicAccessEndpoint: Enabled
-      SnykIntegration: Enabled
-      SnykIntegrationId: ---overridden---
-      LoadBalancerController: Enabled
-      ProvisionBastionHost: Disabled
-    regions:
-      - eu-west-3
-  # TODO: Troubleshoot KubeStateMetricsService resource failures & re-enable
-  # new-relic:
-  #   parameters:
-  #     AvailabilityZones: $[taskcat_genaz_3]
-  #     EKSPublicAccessEndpoint: Enabled
-  #     NewRelicIntegration: Enabled
-  #     NewRelicLicenseKey: ---overridden---
-  #     LoadBalancerController: Enabled
-  #     ProvisionBastionHost: Disabled
-  #   regions:
-  #     - sa-east-1
-  rancher:
-    parameters:
-      AvailabilityZones: $[taskcat_genaz_3]
-      EKSPublicAccessEndpoint: Enabled
-      RancherIntegration: Enabled
-      LoadBalancerController: Enabled
-      ProvisionBastionHost: Disabled
-    regions:
-      - ap-east-1
   managed-node-group-ASC:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -212,29 +200,6 @@ tests:
       LoadBalancerController: Enabled
     regions:
       - eu-north-1
-  calico:
-    parameters:
-      AvailabilityZones: $[taskcat_genaz_3]
-      NodeGroupType: Unmanaged
-      LoadBalancerController: Disabled
-      ProvisionBastionHost: Disabled
-      CalicoIntegration: Enabled
-    regions:
-      - us-west-2
-  # TODO: Troubleshoot CopyZips failures & re-enable
-  # rafaysystems:
-  #   parameters:
-  #     AvailabilityZones: $[taskcat_genaz_3]
-  #     NodeGroupType: Unmanaged
-  #     LoadBalancerController: Disabled
-  #     ProvisionBastionHost: Disabled
-  #     RafaySysIntegration: Enabled
-  #     RafaySysFirstName: override
-  #     RafaySysLastName: override
-  #     RafaySysOrganizationName: override
-  #     RafaySysEmail: override
-  #   regions:
-  #     - ca-central-1
   spot:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
@@ -243,4 +208,4 @@ tests:
       OnDemandBastionPercentage: 0
       ProvisionBastionHost: Enabled
     regions:
-      - us-east-1
+      - ca-central-1

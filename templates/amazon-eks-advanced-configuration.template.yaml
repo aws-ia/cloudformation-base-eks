@@ -219,8 +219,8 @@ Parameters:
   # https://docs.aws.amazon.com/eks/latest/userguide/kubernetes-versions.html#kubernetes-release-calendar
     Type: String
     Description: Kubernetes control plane version.
-    AllowedValues: [1.24, 1.23, 1.22]
-    Default: 1.24
+    AllowedValues: [1.27, 1.26, 1.25, 1.24, 1.23]
+    Default: 1.27
   BastionOS:
     Type: String
     Description: Linux distribution of the bastion host.
@@ -447,14 +447,19 @@ Mappings:
   KubernetesVersion:
   # https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html
   # You must use a kubectl version that is within one minor version
-  # difference of your Amazon EKS cluster control plane. For example, a 1.23
-  # kubectl client works with Kubernetes 1.22, 1.23 and 1.24 clusters.
-    '1.22':
-      KubectlVersion: 1.23.15/2023-01-11
+  # difference of your Amazon EKS cluster control plane. For example, a 1.26
+  # kubectl client works with Kubernetes 1.25, 1.26, and 1.27 clusters.
     '1.23':
       KubectlVersion: 1.24.9/2023-01-11
     '1.24':
-      KubectlVersion: 1.24.9/2023-01-11
+      KubectlVersion: 1.24.13/2023-05-11
+    '1.25':
+      KubectlVersion: 1.26.4/2023-05-11
+    '1.26':
+      KubectlVersion: 1.26.4/2023-05-11
+    '1.27':
+      KubectlVersion: 1.27.1/2023-04-19
+
 Resources:
   EKSPrivateAccessEndpointParameter:
     Type: AWS::SSM::Parameter

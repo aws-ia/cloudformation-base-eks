@@ -10,7 +10,7 @@ Parameters:
     Type: String
   KubernetesVersion:
     Type: String
-    AllowedValues: [1.24, 1.23, 1.22]
+    AllowedValues: [1.27, 1.26, 1.25, 1.24, 1.23]
   OIDCProviderArn:
     Type: String
   OIDCProviderEndpoint:
@@ -26,12 +26,16 @@ Mappings:
   # NOTE: The cluster autoscaler version number is dependant on the K8S version
   # it is being deployed into.
   # https://github.com/kubernetes/autoscaler/releases
-    '1.22':
-      ImageTag: v1.22.3
     '1.23':
       ImageTag: v1.23.1
     '1.24':
-      ImageTag: v1.24.0
+      ImageTag: v1.24.1
+    '1.25':
+      ImageTag: v1.25.1
+    '1.26':
+      ImageTag: v1.26.3
+    '1.27':
+      ImageTag: v1.27.2
 Resources:
   ClusterAutoScalerIamRole:
     Type: AWS::IAM::Role
