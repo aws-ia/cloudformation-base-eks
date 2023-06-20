@@ -78,6 +78,7 @@ tests:
       KubernetesVersion: '1.27'
     regions:
       - us-west-1
+      - us-east-1
   public-endpoint:
     parameters:
       AvailabilityZones: $[taskcat_genaz_3]
