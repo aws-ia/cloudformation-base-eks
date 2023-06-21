@@ -3,7 +3,7 @@
 TASKCAT_OPTIONS ?=
 VERSION ?=
 BUCKET ?=
-PREFIX ?= quickstart-amazon-eks
+PREFIX ?= cloudformation-base-eks
 PROFILE ?= default
 REGION ?= $(shell aws configure get region --profile $(PROFILE))
 GH_RELEASE ?= false
