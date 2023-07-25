@@ -1,4 +1,4 @@
-# Re-using Amazon EKS Quick Start as a component in your own project
+# Re-using CloudFormation-Base-EKS as a component in your own project
 
 This CloudFormation Reference Architecture is designed as a framework for deploying kubernetes based applications into Amazon EKS using AWS
 CloudFormation. It can be used to provide:
