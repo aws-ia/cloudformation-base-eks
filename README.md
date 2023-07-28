@@ -1,4 +1,4 @@
-# cloudformation-base-eks
+# CloudFormation Base EKS
 
 This Reference Architecture is designed to be used by AWS MarketPlace, as a base for EKS related items. See the SUBMODULE_README.md for how to properly use it.
 
