@@ -1,8 +1,8 @@
 FROM public.ecr.aws/docker/library/golang:1.19-alpine
 
-RUN apk --no-cache add py3-pip make git zip bash
+RUN apk --no-cache add py3-pip make git zip
 
-RUN pip install cloudformation-cli-go-plugin==2.0.3
+RUN pip install cloudformation-cli-go-plugin
 
 COPY . /build
 
