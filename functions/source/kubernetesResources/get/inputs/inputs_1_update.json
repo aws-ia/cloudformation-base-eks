@@ -1,6 +1,0 @@
-{
-  "ClusterName": "{{AwsqsEksClusterContractTestClusterName}}",
-  "Namespace": "default",
-  "Name": "ns/kube-system",
-  "JsonPath": "{.metadata.managedFields}"
-}

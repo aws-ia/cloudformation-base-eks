@@ -1,6 +1,0 @@
-{
-  "ClusterName": "invalid",
-  "Namespace": "default",
-  "Name": "ns/kube-system",
-  "JsonPath": "{.metadata}"
-}

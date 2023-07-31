@@ -1,3 +1,0 @@
-cfnresponse
-requests
-urllib3<2
