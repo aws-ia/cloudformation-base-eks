@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "deploy the AWSQS::Kubernetes::Helm resource into CloudFormation registry"
+Parameters:
+  HandlerPackage:
+    Type: String
+    Description: S3 path for handler package
+    Default: s3://aws-quickstart/quickstart-helm-resource-provider/awsqs-kubernetes-helm.zip
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 8400
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+                - "resources.cloudformation.amazonaws.com"
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "secretsmanager:GetSecretValue"
+                  - "kms:Decrypt"
+                  - "eks:DescribeCluster"
+                  - "s3:GetObject"
+                  - "sts:AssumeRole"
+                  - "iam:PassRole"
+                  - "iam:ListRolePolicies"
+                  - "iam:ListAttachedRolePolicies"
+                  - "iam:GetRole"
+                  - "iam:GetPolicy"
+                  - "iam:GetPolicyVersion"
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ec2:DeleteNetworkInterface"
+                  - "ec2:DescribeVpcs"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeRouteTables"
+                  - "ec2:DescribeSecurityGroups"
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                  - "lambda:UpdateFunctionConfiguration"
+                  - "lambda:DeleteFunction"
+                  - "lambda:GetFunction"
+                  - "lambda:InvokeFunction"
+                  - "lambda:CreateFunction"
+                  - "lambda:UpdateFunctionCode"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                Resource: "*"
+  LogDeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+                - resources.cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogGroups"
+                  - "logs:DescribeLogStreams"
+                  - "logs:PutLogEvents"
+                  - "cloudwatch:ListMetrics"
+                  - "cloudwatch:PutMetricData"
+                Resource: "*"
+  ResourceVersion:
+    Type: AWS::CloudFormation::ResourceVersion
+    Properties:
+      TypeName: AWSQS::Kubernetes::Helm
+      LoggingConfig:
+        LogGroupName: awsqs-kubernetes-helm-logs
+        LogRoleArn: !GetAtt LogDeliveryRole.Arn
+      SchemaHandlerPackage: !Ref HandlerPackage
+      ExecutionRoleArn: !GetAtt ExecutionRole.Arn
+  ResourceDefaultVersion:
+    Type: AWS::CloudFormation::ResourceDefaultVersion
+    Properties:
+      TypeVersionArn: !Ref ResourceVersion
+Outputs:
+  ExecutionRoleArn:
+    Value: !GetAtt ExecutionRole.Arn

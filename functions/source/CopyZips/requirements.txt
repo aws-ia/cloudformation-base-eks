@@ -1,0 +1,4 @@
+cfnresponse
+requests
+urllib3<2
+s3transfer

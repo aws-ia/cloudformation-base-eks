@@ -1,0 +1,29 @@
+== Test the deployment
+NOTE: Test from a network with access to the Kubernetes API, as configured by the *Amazon EKS public access endpoint* and *Kubernetes API public access CIDR* parameters. For more information, see https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html[Installing kubectl^]. If you enabled the optional bastion host, you can connect to it using SSH (Secure Shell). Use the key pair that you specified during deployment and the IP address from the *Outputs* tab of the AWS CloudFormation stack. The bastion host already has Kubectl installed and configured so that it connects to the cluster. To test the CLI, connect to the cluster, and run the following command.
+
+. In the AWS CloudFormation console, choose the *Outputs* tab and retrieve the URL from the /*GrafanaURL* output.
+. Retrieve the password for the Grafana UI using the following Kubectl command:
+```
+`kubectl get secret --namespace default grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo`
+```
+[start=3]
+. Navigate to the console URL from step 1, and log in using `admin` as the user and the password from step 2.
+. Choose *Configuration* and then *Data Sources*.
+. Choose *Prometheus* and then *Test*. This should return the message *Data source is working*.
+
+== Best practices for using {partner-product-short-name} on Amazon EKS
+
+For dashboard best practices and observability strategies, see https://grafana.com/docs/grafana/latest/best-practices/[Best practices^] in the Grafana documentation.
+
+== Security
+
+For Grafana security precautions, see https://grafana.com/docs/grafana/latest/administration/security/[Security^] in the Grafana documentation.
+
+== Other useful information
+//Provide any other information of interest to users, especially focusing on areas where AWS or cloud usage differs from on-premises usage.
+//TODO Missing info here:
+
+* https://aws.amazon.com/eks/?whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc&eks-blogs.sort-by=item.additionalFields.createdDate&eks-blogs.sort-order=desc[Amazon Elastic Kubernetes Service^]
+* https://aws.amazon.com/cloudformation/[AWS CloudFormation^]
+* https://kubernetes.io/[Kubernetes^]
+* https://grafana.com/[Grafana Labs^]

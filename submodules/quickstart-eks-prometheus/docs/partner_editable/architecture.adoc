@@ -1,0 +1,9 @@
+// Add bullet points for any additional components that are included in the deployment. Make sure that the additional components are also represented in the architecture diagram. End each bullet with a period.
+
+* A Kubernetes namespace for Prometheus.
+* Node-exporter DaemonSet with a pod to monitor Amazon EKS nodes.
+* Pushgateway deployment with a pod to push metrics from short-lived jobs to intermediary jobs that Prometheus can scrape.
+* Kube-state-metrics DaemonSet with a pod to monitor the Kubernetes API server.
+* Server StatefulSet with a pod and attached persistent volume (PV) to scrap and store time-series data. The pod uses persistent volume claims (PVCs) to request PV resources.
+* Alertmanager StatefulSet with a pod and attached PV for deduplication, grouping, and routing of alerts.
+* Amazon Elastic Block Storage (Amazon EBS) General Purpose SSD (gp2) storage volume.

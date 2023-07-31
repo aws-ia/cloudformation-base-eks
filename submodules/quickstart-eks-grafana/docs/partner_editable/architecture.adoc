@@ -1,0 +1,4 @@
+* A Kubernetes namespace for Grafana.
+* A Classic Load Balancer to route traffic to the Grafana pod.
+* A Grafana deployment containing a single pod.
+* An Amazon Elastic Block Store (Amazon EBS) volume.

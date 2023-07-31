@@ -1,0 +1,12 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  KubeStateMetrics:
+    Type: "AWSQS::Kubernetes::Helm"
+    Properties:
+      ClusterID: my-cluster-name
+      RoleArn: arn:aws:iam::<ACCOUNT_ID>:role/<IAM_ROLE_NAME>
+      Name: kube-state-metrics
+      Namespace: kube-state-metrics
+      Repository: https://prometheus-community.github.io/helm-charts
+      Chart: prometheus-community/kube-state-metrics
+      ValueOverrideURL: s3://<bucket>/<path>

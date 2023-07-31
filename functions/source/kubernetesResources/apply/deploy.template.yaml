@@ -1,0 +1,159 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "deploy the AWSQS::Kubernetes::Get resource into CloudFormation registry"
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      MaxSessionDuration: 8400
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+                - "resources.cloudformation.amazonaws.com"
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                    - "secretsmanager:GetSecretValue"
+                    - "kms:Decrypt"
+                    - "eks:DescribeCluster"
+                    - "s3:GetObject"
+                    - "sts:AssumeRole"
+                    - "iam:PassRole"
+                    - "iam:ListRolePolicies"
+                    - "iam:ListAttachedRolePolicies"
+                    - "iam:GetRole"
+                    - "iam:GetPolicy"
+                    - "iam:GetPolicyVersion"
+                    - "ec2:CreateNetworkInterface"
+                    - "ec2:DeleteNetworkInterface"
+                    - "ec2:Describe*"
+                    - "logs:CreateLogGroup"
+                    - "logs:CreateLogStream"
+                    - "logs:PutLogEvents"
+                    - "lambda:*"
+                Resource: "*"
+  LogDeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+                - resources.cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogGroups"
+                  - "logs:DescribeLogStreams"
+                  - "logs:PutLogEvents"
+                  - "cloudwatch:ListMetrics"
+                  - "cloudwatch:PutMetricData"
+                Resource: "*"
+  RegisterTypeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "cloudformation:*"
+                  - "iam:PassRole"
+                  - "s3:GetObject"
+                Resource: "*"
+  RegisterTypeFunction:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Timeout: 900
+      Runtime: python3.8
+      Handler: index.handler
+      Role: !GetAtt RegisterTypeRole.Arn
+      Code:
+        ZipFile: !Sub |
+          import cfnresponse
+          import logging
+          import boto3
+          from time import sleep
+
+          def stabilize(token, cfn):
+              p = cfn.describe_type_registration(RegistrationToken=token)
+              while p['ProgressStatus'] == "IN_PROGRESS":
+                  sleep(5)
+                  p = cfn.describe_type_registration(RegistrationToken=token)
+              if p['ProgressStatus'] == 'FAILED':
+                  logging.error(p)
+                  return cfnresponse.FAILED, p['TypeVersionArn']
+              return cfnresponse.SUCCESS, p['TypeVersionArn']
+
+          def register(cfn):
+              response = cfn.register_type(
+                  Type='RESOURCE',
+                  TypeName='AWSQS::Kubernetes::Helm',
+                  SchemaHandlerPackage="s3://aws-quickstart/quickstart-helm-resource-provider/awsqs-kubernetes-helm.zip",
+                  LoggingConfig={"LogRoleArn": "${LogDeliveryRole.Arn}", "LogGroupName": "awsqs-kubernetes-helm-logs"},
+                  ExecutionRoleArn="${ExecutionRole.Arn}"
+              )
+              status, version_arn = stabilize(response['RegistrationToken'], cfn)
+              cfn.set_type_default_version(Arn=version_arn)
+              return status, version_arn
+
+          def handler(event, context):
+              print(event)
+              status = cfnresponse.SUCCESS
+              physical_id = event.get('PhysicalResourceId')
+              try:
+                  cfn = boto3.client('cloudformation')
+                  if event['RequestType'] == 'Create':
+                      status, physical_id = register(cfn)
+                  if event['RequestType'] == 'Update':
+                      status, physical_id = register(cfn)
+                  if event['RequestType'] == 'Delete':
+                      versions = cfn.list_type_versions(Type='RESOURCE', TypeName='AWSQS::Kubernetes::Helm')['TypeVersionSummaries']
+                      if len(versions) > 1:
+                          cfn.deregister_type(Arn=physical_id)
+                      else:
+                          cfn.deregister_type(Type='RESOURCE', TypeName='AWSQS::Kubernetes::Helm')
+              except Exception:
+                  logging.error('Unhandled exception', exc_info=True)
+                  status = cfnresponse.FAILED
+              finally:
+                  cfnresponse.send(event, context, status, {}, physicalResourceId=physical_id)
+  RegisterType:
+      Type: "AWS::CloudFormation::CustomResource"
+      Properties:
+        ServiceToken: !GetAtt RegisterTypeFunction.Arn
+Outputs:
+  ExecutionRoleArn:
+    Value: !GetAtt ExecutionRole.Arn

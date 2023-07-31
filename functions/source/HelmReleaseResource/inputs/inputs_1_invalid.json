@@ -1,0 +1,7 @@
+{
+  "Name": "{{AwsqsKubernetesHelmContractTestReleaseName}}",
+  "ID": "{{AwsqsKubernetesHelmContractTestID}}",
+  "RoleArn": "{{AwsqsKubernetesHelmContractTestHelmRoleArn}}",
+  "Repository": "https://prometheus-community.github.io/helm-charts",
+  "Chart": "prometheus-community/kube-state-metrics"
+}

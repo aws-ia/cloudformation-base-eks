@@ -1,0 +1,524 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Shared resources required by all Amazon EKS Quick Start stacks in this
+  account (qs-1r0qgtn7j).
+Conditions:
+  Commercial: !Equals [!Ref AWS::Partition, aws]
+Resources:
+  CopyZipsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-CopyZips
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: lambda-zips-s3-read
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::*/*
+  GenerateClusterNameRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-GenerateClusterName
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  ResourceReaderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-ResourceReader
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/ReadOnlyAccess
+  CreateVpcRoleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-CreateVpcRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: create-role
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: iam:CreateRole
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation-Kubernetes-VPC
+              - Effect: Allow
+                Action: iam:AttachRolePolicy
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation-Kubernetes-VPC
+                Condition:
+                  ArnEquals:
+                    iam:PolicyARN:
+                      - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaENIManagementAccess
+                      - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  DeleteBucketContentsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-DeleteBucketContents
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+  ControlPlaneRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-ControlPlane
+      Policies:
+        - PolicyName: ec2-describe-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeAccountAttributes
+                  - ec2:DescribeAddresses
+                  - ec2:DescribeInternetGateways
+                Resource: '*'
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSClusterPolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSServicePolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSVPCResourceController
+  CleanupLoadBalancersRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      cfn-lint:
+        config:
+          ignore_checks: [EIAMPolicyWildcardResource]
+          ignore_reasons:
+            EIAMPolicyWildcardResource: >-
+              Action elasticloadbalancing:DescribeTags requires a wildcard
+              resource. As of 2023-02-05, cfn-lint falsely reports this as an
+              issue.
+    Properties:
+      RoleName: eks-quickstart-CleanupLoadBalancers
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeTags
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeSecurityGroups
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DetachNetworkInterface
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ec2:*:${AWS::AccountId}:instance/*
+                  - !Sub arn:${AWS::Partition}:ec2:*:${AWS::AccountId}:network-interface/*
+              - Effect: Allow
+                Action:
+                  - ec2:DeleteSecurityGroup
+                  - ec2:RevokeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupIngress
+                Resource: !Sub arn:${AWS::Partition}:ec2:*:${AWS::AccountId}:security-group/*
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeLoadBalancers
+                  - elasticloadbalancing:DescribeTags
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DeleteLoadBalancer
+                Resource:
+                  - !Sub arn:${AWS::Partition}:elasticloadbalancing:*:${AWS::AccountId}:loadbalancer/app/*/* # ALB
+                  - !Sub arn:${AWS::Partition}:elasticloadbalancing:*:${AWS::AccountId}:loadbalancer/net/*/* # NLB
+                  - !Sub arn:${AWS::Partition}:elasticloadbalancing:*:${AWS::AccountId}:loadbalancer/* # Classic
+  CleanupSecurityGroupDependenciesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-CleanupSecurityGroupDependencies
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:DescribeSecurityGroups
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:DeleteNetworkInterface
+                  - ec2:DetachNetworkInterface
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ec2:*:${AWS::AccountId}:instance/*
+                  - !Sub arn:${AWS::Partition}:ec2:*:${AWS::AccountId}:network-interface/*
+              - Effect: Allow
+                Action:
+                  - ec2:DeleteSecurityGroup
+                  - ec2:RevokeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupIngress
+                Resource: !Sub arn:${AWS::Partition}:ec2:*:${AWS::AccountId}:security-group/*
+  CleanupLambdasRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-CleanupLambdas
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: lambda:ListFunctions
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - lambda:DeleteFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource: !Sub arn:${AWS::Partition}:lambda:*:${AWS::AccountId}:function:*
+  GetCallerArnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-GetCallerArn
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: LambdaRole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: cloudformation:DescribeStacks
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/*/*
+              - Effect: Allow
+                Action: cloudtrail:LookupEvents
+                Resource: '*'
+  RegisterTypeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-RegisterType
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: sts:GetCallerIdentity
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - cloudformation:DeregisterType
+                  - cloudformation:DescribeType
+                  - cloudformation:DescribeTypeRegistration
+                  - cloudformation:ListTypeVersions
+                  - cloudformation:RegisterType
+                  - cloudformation:SetTypeDefaultVersion
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:PassRole
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*
+              - Effect: Allow
+                Action:
+                  - iam:CreatePolicy
+                  - iam:CreatePolicyVersion
+                  - iam:DeletePolicyVersion
+                  - iam:ListPolicyVersions
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/*
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub arn:${AWS::Partition}:s3:::*/*
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                  - ssm:PutParameter
+                Resource: !Sub arn:${AWS::Partition}:ssm:*:${AWS::AccountId}:parameter/*
+  NodeSGRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-NodeSG
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DescribeNodeGroups
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: eks:DescribeNodeGroup
+                Resource: !Sub arn:${AWS::Partition}:eks:*:${AWS::AccountId}:nodegroup/*/*/*
+  FargateExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-FargateExecution
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks-fargate-pods.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSFargatePodExecutionRolePolicy
+  FargateProfileRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-FargateProfile
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: ec2:DescribeSubnets
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - eks:DescribeFargateProfile
+                  - eks:CreateFargateProfile
+                  - eks:DeleteFargateProfile
+                Resource:
+                  - !Sub arn:${AWS::Partition}:eks:*:${AWS::AccountId}:cluster/*
+                  - !Sub arn:${AWS::Partition}:eks:*:${AWS::AccountId}:fargateprofile/*/*/*
+              - Effect: Allow
+                Action:
+                  - iam:PassRole
+                  - iam:GetRole
+                  - iam:CreateServiceLinkedRole
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*
+  QuickStartParameterResolverRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-QuickStartParameterResolver
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: param-resolver
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParametersByPath
+                  - ssm:GetParameters
+                  - ssm:GetParameterHistory
+                  - ssm:GetParameter
+                Resource: !Sub arn:${AWS::Partition}:ssm:*:${AWS::AccountId}:parameter/quickstart/amazon-eks/*
+  UnmanagedNodeInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Ref UnmanagedNodeInstanceRole
+      Path: /
+      Roles:
+        - !Ref UnmanagedNodeInstanceRole
+  ManagedNodeInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      InstanceProfileName: !Ref ManagedNodeInstanceRole
+      Path: /
+      Roles:
+        - !Ref ManagedNodeInstanceRole
+  UnmanagedNodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-UnmanagedNodeInstance
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub ec2.${AWS::URLSuffix}
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: cfn-signal
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: cloudformation:SignalResource
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/*/*
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+        - !If [Commercial, !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonElasticContainerRegistryPublicReadOnly', !Ref AWS::NoValue]
+  ManagedNodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-ManagedNodeInstance
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: !Sub ec2.${AWS::URLSuffix}
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: cfn-signal
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:SignalResource
+                Resource: !Sub arn:${AWS::Partition}:cloudformation:*:${AWS::AccountId}:stack/*/*
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEKS_CNI_Policy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/CloudWatchAgentServerPolicy
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+        - !If [Commercial, !Sub 'arn:${AWS::Partition}:iam::aws:policy/AmazonElasticContainerRegistryPublicReadOnly', !Ref AWS::NoValue]
+  CloudFormationVPCRoleCreationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: eks-quickstart-CloudFormationVPCRoleCreation
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: create-role
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: iam:CreateRole
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation-Kubernetes-VPC
+        - PolicyName: attach-role-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action: iam:AttachRolePolicy
+                Resource: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/CloudFormation-Kubernetes-VPC
+                Condition:
+                  ArnEquals:
+                    iam:PolicyARN:
+                      - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+                      - !Sub arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaENIManagementAccess

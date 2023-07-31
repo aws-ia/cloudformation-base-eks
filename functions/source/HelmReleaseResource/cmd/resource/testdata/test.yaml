@@ -1,0 +1,6 @@
+ root:
+  firstlevel: value
+  secondlevel:
+    - a1
+    - a2
+  file: true

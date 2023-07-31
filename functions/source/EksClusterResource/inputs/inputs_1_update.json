@@ -1,0 +1,28 @@
+{
+  "Name": "ContractTest",
+  "RoleArn": "{{AwsqsEksClusterContractTestControlPlaneRoleArn}}",
+  "Version": "1.21",
+  "KubernetesNetworkConfig": {"ServiceIpv4Cidr": "172.20.0.0/16"},
+  "ResourcesVpcConfig": {
+    "EndpointPublicAccess": "true",
+    "EndpointPrivateAccess": "false",
+    "SecurityGroupIds": [
+      "{{AwsqsEksClusterContractTestSecurityGroup}}"
+    ],
+    "SubnetIds": [
+      "{{AwsqsEksClusterContractTestPrivateSubnet1ID}}",
+      "{{AwsqsEksClusterContractTestPrivateSubnet2ID}}",
+      "{{AwsqsEksClusterContractTestPublicSubnet1ID}}",
+      "{{AwsqsEksClusterContractTestPublicSubnet2ID}}"
+    ]
+  },
+  "EncryptionConfig": [
+    {
+      "Resources": ["secrets"],
+      "Provider": {
+        "KeyArn": "{{AwsqsEksClusterContractTestKmsKey}}"
+      }
+    }
+  ],
+  "EnabledClusterLoggingTypes": ["audit"]
+}

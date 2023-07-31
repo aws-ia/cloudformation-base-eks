@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "deploy the AWSQS::EKS::Cluster resource into CloudFormation registry"
+Parameters:
+  CreateClusterAccessRole:
+    Type: String
+    Default: 'Enabled'
+    AllowedValues:
+      - 'Enabled'
+      - 'Disabled'
+  PermissionsBoundary:
+    Type: String
+    Default: ''
+  HandlerPackage:
+    Type: String
+    Description: S3 path for handler package
+    Default: s3://aws-quickstart/quickstart-amazon-eks-cluster-resource-provider/awsqs-eks-cluster.zip
+Conditions:
+  CreateRole: !Equals [!Ref CreateClusterAccessRole, 'Enabled']
+  PermissionsBoundary: !Not [!Equals [!Ref PermissionsBoundary, '']]
+Resources:
+  ResourceVersion:
+    Type: AWS::CloudFormation::ResourceVersion
+    Metadata:
+      DependsOn: 
+      - !If [CreateRole, !Ref ExecutionRole, !Ref 'AWS::NoValue']
+      - !If [CreateRole, !Ref LogDeliveryRole, !Ref 'AWS::NoValue']
+    Properties:
+      TypeName: AWSQS::EKS::Cluster
+      LoggingConfig:
+        LogGroupName: awsqs-eks-cluster-logs
+        LogRoleArn: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-cluster-log-delivery'
+      SchemaHandlerPackage: !Ref HandlerPackage
+      ExecutionRoleArn: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/eks-cluster-execution'
+  ResourceDefaultVersion:
+    Type: AWS::CloudFormation::ResourceDefaultVersion
+    Properties:
+      TypeVersionArn: !Ref ResourceVersion
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRole
+    Properties:
+      RoleName: eks-cluster-execution
+      PermissionsBoundary:
+        Fn::If:
+          - PermissionsBoundary
+          - Ref: PermissionsBoundary
+          - Ref: AWS::NoValue
+      MaxSessionDuration: 8400
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: [resources.cloudformation.amazonaws.com, cloudformation.amazonaws.com]
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "sts:GetCallerIdentity"
+                  - "eks:CreateCluster"
+                  - "eks:DeleteCluster"
+                  - "eks:DescribeCluster"
+                  - "eks:ListTagsForResource"
+                  - "eks:UpdateClusterVersion"
+                  - "eks:UpdateClusterConfig"
+                  - "eks:TagResource"
+                  - "eks:UntagResource"
+                  - "iam:PassRole"
+                  - "sts:AssumeRole"
+                  - "lambda:UpdateFunctionConfiguration"
+                  - "lambda:DeleteFunction"
+                  - "lambda:GetFunction"
+                  - "lambda:Invoke"
+                  - "lambda:CreateFunction"
+                  - "lambda:UpdateFunctionCode"
+                  - "ec2:DescribeVpcs"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeSecurityGroups"
+                  - "kms:CreateGrant"
+                  - "kms:DescribeKey"
+                Resource: "*"
+  LogDeliveryRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRole
+    Properties:
+      RoleName: eks-cluster-log-delivery
+      PermissionsBoundary:
+        Fn::If:
+          - PermissionsBoundary
+          - Ref: PermissionsBoundary
+          - Ref: AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - cloudformation.amazonaws.com
+                - resources.cloudformation.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: ResourceTypePolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "logs:CreateLogGroup"
+                  - "logs:CreateLogStream"
+                  - "logs:DescribeLogGroups"
+                  - "logs:DescribeLogStreams"
+                  - "logs:PutLogEvents"
+                  - "cloudwatch:ListMetrics"
+                  - "cloudwatch:PutMetricData"
+                Resource: "*"
+  VpcProxyRole:
+    Type: AWS::IAM::Role
+    Condition: CreateRole
+    Properties:
+      RoleName: CloudFormation-Kubernetes-VPC
+      PermissionsBoundary:
+        Fn::If:
+          - PermissionsBoundary
+          - Ref: PermissionsBoundary
+          - Ref: AWS::NoValue
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaENIManagementAccess'
+        - !Sub 'arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
