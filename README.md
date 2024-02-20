@@ -106,7 +106,7 @@ roles can be added as Kubernetes administrators (**system:master** kubernetes cl
 <h3>Managing Kubernetes resources using AWS CloudFormation</h3>
 
 This reference architecture includes AWS CloudFormation registry types that enable authoring, creating, and
-managing Kubernetes-based applications. For an example, see [example-workload template](https://github.com/aws-quickstart/quickstart-aws-eks/blob/master/templates/example-workload.template.yaml).
+managing Kubernetes-based applications. For an example, see [example-workload template](https://github.com/aws-ia/cloudformation-base-eks/blob/main/templates/examples/example-workload.template.yaml).
 
 
 <h2>Optional add-ins</h2>
