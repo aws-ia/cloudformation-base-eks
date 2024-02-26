@@ -1,6 +1,6 @@
 # CloudFormation Base EKS
 
-This Reference Architecture is designed to be used by AWS MarketPlace, as a base for EKS related items. See the SUBMODULE_README.md for how to properly use it.
+This Reference Architecture is designed to be used by AWS Marketplace, as a base for EKS related items. See the SUBMODULE_README.md for how to properly use it.
 
 <h2>Architecture</h2>
 
@@ -25,12 +25,12 @@ The reference architecture sets up the following:
 <h2>Specialized knowledge</h2>
 
 This deployment requires a moderate level of familiarity with
-AWS services. If you’re new to AWS, see https://aws.amazon.com/getting-started/[Getting Started Resource Center^]
-and https://aws.amazon.com/training/[AWS Training and Certification^]. These sites provide materials for learning how to design,
+AWS services. If you’re new to AWS, see [Getting Started Resource Center](https://aws.amazon.com/getting-started)
+and [AWS Training and Certification](https://aws.amazon.com/training). These sites provide materials for learning how to design,
 
 <h3>AWS account****</h3>
 
-If you don’t already have an AWS account, create one at https://aws.amazon.com/[https://aws.amazon.com^] by following the on-screen instructions. Part of the sign-up process involves receiving a phone call and entering a PIN using the phone keypad.
+If you don’t already have an AWS account, create one at https://aws.amazon.com by following the on-screen instructions. Part of the sign-up process involves receiving a phone call and entering a PIN using the phone keypad.
 
 Your AWS account is automatically signed up for all AWS services. You are charged only for the services you use.
 
@@ -42,12 +42,12 @@ Before you launch the reference architecture, review the following information a
 
 <h3>IAM permissions</h3>
 
-Before launching the reference architecture, you must sign in to the AWS Management Console with IAM permissions for the resources that the templates deploy. The _AdministratorAccess_ managed policy within IAM provides sufficient permissions, although your organization may choose to use a custom policy with more restrictions. For more information, see https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html[AWS managed policies for job functions^].
+Before launching the reference architecture, you must sign in to the AWS Management Console with IAM permissions for the resources that the templates deploy. The _AdministratorAccess_ managed policy within IAM provides sufficient permissions, although your organization may choose to use a custom policy with more restrictions. For more information, see [AWS managed policies for job functions](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html).
 
 
 <h2>Test the deployment</h2>
 
-NOTE: These steps must be executed from a network that has access to the Kubernetes API, as configured by the *EKS public access endpoint* and *Kubernetes API public access CIDR* parameters. For more information, see https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html[Installing kubectl^]. If you enabled the optional bastion host, you can connect to it by using SSH. Use the key pair that you specified during deployment and the IP address from the *Outputs* tab of the AWS CloudFormation stack.
+NOTE: These steps must be executed from a network that has access to the Kubernetes API, as configured by the *EKS public access endpoint* and *Kubernetes API public access CIDR* parameters. For more information, see [Installing kubectl](https://docs.aws.amazon.com/eks/latest/userguide/install-kubectl.html). If you enabled the optional bastion host, you can connect to it by using SSH. Use the key pair that you specified during deployment and the IP address from the *Outputs* tab of the AWS CloudFormation stack.
 
 The bastion host already has `kubectl` installed and configured so that it connects to the cluster. To test the CLI, connect to the cluster, and run the following command.
 
@@ -86,7 +86,7 @@ CloudFormation operations on the stack to behave unexpectedly.
 
 This deployment enables users of the Amazon EKS cluster to create elastic load balancers and Amazon EBS volumes
 as part of their Kubernetes applications. Because these carry additional costs, we recommend that you grant users of the
-Amazon EKS cluster the minimum permissions required according to https://kubernetes.io/docs/reference/access-authn-authz/rbac/[Kubernetes Role Based Access Control (RBAC)^] and that you monitor resource usage by using the Kubernetes CLI or API to describe persistent
+Amazon EKS cluster the minimum permissions required according to [Kubernetes Role Based Access Control (RBAC)](https://kubernetes.io/docs/reference/access-authn-authz/rbac) and that you monitor resource usage by using the Kubernetes CLI or API to describe persistent
 volume claims (PVC) and `LoadBalancer` resources across all namespaces. To disable this functionality, update the
 `ControlPlaneRole` IAM role in the child stack to restrict access to the Kubernetes control plane for specific AWS
 APIs, such as `ec2:CreateVolume` and `elb:CreateLoadBalancer`.
@@ -101,12 +101,12 @@ managed by the native Kubernetes RBAC system. We recommend that you grant least-
 This reference architecture creates an IAM role that is used to create the Kubernetes control plane. The AWS CloudFormation custom
 resources and Linux bastion host use the IAM role to provide access to the Kubernetes API. Additional IAM users or
 roles can be added as Kubernetes administrators (**system:master** kubernetes cluster role) by entering an ARN into the
-**Additional EKS admin ARN** parameter when you launch this Quick Start. To add users after the stack launches, see https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html[Managing users or IAM roles for your cluster^].
+**Additional EKS admin ARN** parameter when you launch this Quick Start. To add users after the stack launches, see [Managing users or IAM roles for your cluster](https://docs.aws.amazon.com/eks/latest/userguide/add-user-role.html).
 
 <h3>Managing Kubernetes resources using AWS CloudFormation</h3>
 
 This reference architecture includes AWS CloudFormation registry types that enable authoring, creating, and
-managing Kubernetes-based applications. For an example, see https://github.com/aws-quickstart/quickstart-aws-eks/blob/master/templates/example-workload.template.yaml[example-workload template^].
+managing Kubernetes-based applications. For an example, see [example-workload template](https://github.com/aws-ia/cloudformation-base-eks/blob/main/templates/examples/example-workload.template.yaml).
 
 
 <h2>Optional add-ins</h2>
@@ -115,7 +115,7 @@ This reference architecture contains optional configurations and add-ins for Kub
 
 <h3>Cluster autoscaler</h3>
 
-https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler[Cluster autoscaler^] automatically adjusts the
+[Cluster autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler) automatically adjusts the
 size of the Kubernetes cluster when there are insufficient resources or nodes.
 
 <h3>Managed node group</h3>
@@ -127,7 +127,7 @@ provisioned as part of an Auto Scaling group, which means you cannot use the *Cl
 
 An optional `EFSStorageClass` volume provides redundant, persistent storage that is untethered to individual Availability
 Zones, so it is well suited for high availability, stateful applications that are required to survive an outage. The Amazon EFS volume is available to Kubernetes pods through the
-https://github.com/helm/charts/tree/master/stable/efs-provisioner[EFS provisioner project^].
+[EFS provisioner project](https://github.com/helm/charts/tree/master/stable/efs-provisioner).
 
 There are several configuration options available to tune the performance and throughput of the underlying EFS volume.
-For more information, see https://docs.aws.amazon.com/efs/latest/ug/performance.html[Amazon EFS Performance^].
+For more information, see [Amazon EFS Performance](https://docs.aws.amazon.com/efs/latest/ug/performance.html).
