@@ -18,8 +18,8 @@ package: build
 	cd bin ; zip -FS -X k8svpc.zip bootstrap ; rm bootstrap ; mv bootstrap2 bootstrap ; zip -X ../handler.zip ./k8svpc.zip ./bootstrap ; cd ..
 	cp  $(TYPE_NAME_LOWER).json schema.json
 	find . -exec touch -t 202007010000.00 {} +
-	zip -Xr $(TYPE_NAME_LOWER).zip ./bootstrap.zip ./schema.json ./.rpdk-config ./inputs
-	rm ./bootstrap.zip ./schema.json
+	zip -Xr $(TYPE_NAME_LOWER).zip ./handler.zip ./schema.json ./.rpdk-config ./inputs
+	rm ./hanlder.zip ./schema.json
 	aws s3 cp ./$(TYPE_NAME_LOWER).zip s3://$(BUCKET)/
 
 register:
@@ -35,7 +35,7 @@ register:
 	TOKEN=`aws cloudformation register-type \
 		--type "RESOURCE" \
 		--type-name  "$(TYPE_NAME)" \
-		--schema-bootstrap-package s3://$(BUCKET)/$(TYPE_NAME_LOWER).zip \
+		--schema-handler-package s3://$(BUCKET)/$(TYPE_NAME_LOWER).zip \
 		--logging-config LogRoleArn=$${R_LOG_ROLE},LogGroupName=/cloudformation/registry/$(TYPE_NAME_LOWER) \
 		--execution-role-arn $${R_EX_ROLE} \
 		--region $(REGION) \
