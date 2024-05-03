@@ -19,7 +19,7 @@ package: build
 	cp  $(TYPE_NAME_LOWER).json schema.json
 	find . -exec touch -t 202007010000.00 {} +
 	zip -Xr $(TYPE_NAME_LOWER).zip ./handler.zip ./schema.json ./.rpdk-config ./inputs
-	rm ./hanlder.zip ./schema.json
+	rm ./handler.zip ./schema.json
 	aws s3 cp ./$(TYPE_NAME_LOWER).zip s3://$(BUCKET)/
 
 register:
