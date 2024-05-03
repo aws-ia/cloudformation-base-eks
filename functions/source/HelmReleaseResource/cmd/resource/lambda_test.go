@@ -367,7 +367,7 @@ func TestNewLambdaResource(t *testing.T) {
 				nameSuffix:   aws.String("88c81d0fbff37a9cfae847245f69cde9"),
 				vpcConfig:    v,
 				functionName: aws.String("helm-provider-vpc-connector-88c81d0fbff37a9cfae847245f69cde9"),
-				functionFile: "bootstrap.zip",
+				functionFile: "k8svpc.zip",
 			},
 		},
 	}
