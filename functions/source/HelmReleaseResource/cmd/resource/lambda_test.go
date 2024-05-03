@@ -356,7 +356,7 @@ func TestNewLambdaResource(t *testing.T) {
 				nameSuffix:   aws.String("37b6fa0c59ff93e123871e92573b290c"),
 				vpcConfig:    v,
 				functionName: aws.String("helm-provider-vpc-connector-37b6fa0c59ff93e123871e92573b290c"),
-				functionFile: "k8svpc.zip",
+				functionFile: "bootstrap.zip",
 			},
 		},
 		"WithKubeConfig": {
@@ -367,7 +367,7 @@ func TestNewLambdaResource(t *testing.T) {
 				nameSuffix:   aws.String("88c81d0fbff37a9cfae847245f69cde9"),
 				vpcConfig:    v,
 				functionName: aws.String("helm-provider-vpc-connector-88c81d0fbff37a9cfae847245f69cde9"),
-				functionFile: "k8svpc.zip",
+				functionFile: "bootstrap.zip",
 			},
 		},
 	}

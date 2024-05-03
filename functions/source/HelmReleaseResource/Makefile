@@ -10,16 +10,16 @@ LOG_ROLE ?= use-existing
 build:
 	go mod tidy -v
 	cfn generate
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="logging" -o bin/handler cmd/main.go
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/k8svpc vpc/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="lambda.norpc,logging" -o bin/bootstrap cmd/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="lambda.norpc" -o bin/bootstrap vpc/main.go
 
 package: build
 	find . -exec touch -t 202007010000.00 {} +
-	cd bin ; zip -FS -X k8svpc.zip k8svpc ; rm k8svpc ; zip -X ../handler.zip ./k8svpc.zip ./handler ; cd ..
+	cd bin ; zip -FS -X bootstrap.zip bootstrap ; rm bootstrap ; zip -X ../bootstrap.zip ./bootstrap.zip ./bootstrap ; cd ..
 	cp  $(TYPE_NAME_LOWER).json schema.json
 	find . -exec touch -t 202007010000.00 {} +
-	zip -Xr $(TYPE_NAME_LOWER).zip ./handler.zip ./schema.json ./.rpdk-config ./inputs
-	rm ./handler.zip ./schema.json
+	zip -Xr $(TYPE_NAME_LOWER).zip ./bootstrap.zip ./schema.json ./.rpdk-config ./inputs
+	rm ./bootstrap.zip ./schema.json
 	aws s3 cp ./$(TYPE_NAME_LOWER).zip s3://$(BUCKET)/
 
 register:
@@ -35,7 +35,7 @@ register:
 	TOKEN=`aws cloudformation register-type \
 		--type "RESOURCE" \
 		--type-name  "$(TYPE_NAME)" \
-		--schema-handler-package s3://$(BUCKET)/$(TYPE_NAME_LOWER).zip \
+		--schema-bootstrap-package s3://$(BUCKET)/$(TYPE_NAME_LOWER).zip \
 		--logging-config LogRoleArn=$${R_LOG_ROLE},LogGroupName=/cloudformation/registry/$(TYPE_NAME_LOWER) \
 		--execution-role-arn $${R_EX_ROLE} \
 		--region $(REGION) \

@@ -18,11 +18,11 @@ import (
 )
 
 const (
-	ZipFile            string = "k8svpc.zip"
+	ZipFile            string = "bootstrap.zip"
 	FunctionNamePrefix string = "k8s-api-vpc-connector-"
-	Handler            string = "k8svpc"
+	Handler            string = "bootstrap"
 	MemorySize         int64  = 256
-	Runtime            string = "go1.x"
+	Runtime            string = "provided.al2023"
 	Timeout            int64  = 900
 )
 

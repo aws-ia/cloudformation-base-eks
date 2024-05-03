@@ -10,17 +10,17 @@ Resources:
   TypeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: handler
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2023
       CodeUri: bin/
 
   TestEntrypoint:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: handler
-      Runtime: go1.x
+      Handler: bootstrap
+      Runtime: provided.al2023
       CodeUri: bin/
-      Environment: 
-        Variables: 
+      Environment:
+        Variables:
           MODE: Test
 

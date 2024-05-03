@@ -14,16 +14,16 @@ SUM_FILES ?= $(TYPE_NAME_LOWER).json go.mod cmd/* vpc/* cmd/resource/*
 build:
 	go mod tidy
 	cfn generate
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="logging" -o bin/handler cmd/main.go
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/k8svpc vpc/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="lambda.norpc,logging" -o bin/bootstrap cmd/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="lambda.norpc" -o bin/bootstrap vpc/main.go
 
 package: build
 	find . -exec touch -t 202007010000.00 {} +
-	cd bin ; zip -FS -X k8svpc.zip k8svpc ; rm k8svpc ; zip -X ../handler.zip ./k8svpc.zip ./handler ; cd ..
+	cd bin ; zip -FS -X bootstrap.zip bootstrap ; rm bootstrap ; zip -X ../bootstrap.zip ./bootstrap.zip ./bootstrap ; cd ..
 	cp  awsqs-eks-cluster.json schema.json
 	find . -exec touch -t 202007010000.00 {} +
-	zip -Xr awsqs-eks-cluster.zip ./handler.zip ./schema.json ./.rpdk-config ./inputs
-	rm ./handler.zip ./schema.json
+	zip -Xr awsqs-eks-cluster.zip ./bootstrap.zip ./schema.json ./.rpdk-config ./inputs
+	rm ./bootstrap.zip ./schema.json
 	aws s3 cp ./awsqs-eks-cluster.zip s3://$(BUCKET)/
 
 register:
