@@ -14,8 +14,8 @@ SUM_FILES ?= $(TYPE_NAME_LOWER).json go.mod cmd/* vpc/* cmd/resource/*
 build:
 	go mod tidy
 	cfn generate
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="lambda.norpc,logging" -o bin/bootstrap2 cmd/main.go
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="lambda.norpc" -o bin/bootstrap vpc/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="logging" -o bin/bootstrap2 cmd/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/bootstrap vpc/main.go
 
 package: build
 	find . -exec touch -t 202007010000.00 {} +
