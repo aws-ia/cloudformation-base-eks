@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	ZipFile            string = "bootstrap.zip"
+	ZipFile            string = "k8svpc.zip"
 	FunctionNamePrefix string = "helm-provider-vpc-connector-"
 	Handler            string = "bootstrap"
 	MemorySize         int64  = 384
