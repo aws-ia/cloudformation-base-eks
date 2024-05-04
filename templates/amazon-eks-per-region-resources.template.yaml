@@ -307,7 +307,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt RegisterTypeFunction.Arn
       TypeName: AWSQS::Kubernetes::Helm
-      Version: 3.1.2
+      Version: 3.3.0
       RandomStr: !Ref RandomStr
       SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/HelmReleaseResource/awsqs-kubernetes-helm.zip
       IamPolicy:
@@ -357,7 +357,7 @@ Resources:
     Properties:
       ServiceToken: !GetAtt RegisterTypeFunction.Arn
       TypeName: AWSQS::Kubernetes::Get
-      Version: 3.2.3
+      Version: 3.3.0
       RandomStr: !Ref RandomStr
       SchemaHandlerPackage: !Sub s3://eks-quickstart-lambdazips-${AWS::Region}-${AWS::AccountId}/${QSS3KeyPrefix}functions/packages/kubernetesResources/awsqs_kubernetes_get.zip
       IamPolicy:
