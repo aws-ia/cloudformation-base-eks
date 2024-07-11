@@ -2,9 +2,9 @@
     "artifact_type": "RESOURCE",
     "typeName": "AWSQS::Kubernetes::Helm",
     "language": "go",
-    "runtime": "go1.x",
-    "entrypoint": "handler",
-    "testEntrypoint": "handler",
+    "runtime": "provided.al2023",
+    "entrypoint": "bootstrap",
+    "testEntrypoint": "bootstrap",
     "settings": {
         "importpath": "github.com/aws-quickstart/quickstart-helm-resource-provider",
         "import_path": "github.com/aws-quickstart/quickstart-helm-resource-provider",

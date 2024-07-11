@@ -20,9 +20,9 @@ import (
 const (
 	ZipFile            string = "k8svpc.zip"
 	FunctionNamePrefix string = "helm-provider-vpc-connector-"
-	Handler            string = "k8svpc"
+	Handler            string = "bootstrap"
 	MemorySize         int64  = 384
-	Runtime            string = "go1.x"
+	Runtime            string = "provided.al2023"
 	Timeout            int64  = 900
 	UpdateInProgress   string = "The function could not be updated due to a concurrent update operation."
 	LambdaMaxSubnets   int    = 16

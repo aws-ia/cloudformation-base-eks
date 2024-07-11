@@ -10,12 +10,12 @@ LOG_ROLE ?= use-existing
 build:
 	go mod tidy -v
 	cfn generate
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="logging" -o bin/handler cmd/main.go
-	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/k8svpc vpc/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -tags="logging" -o bin/bootstrap2 cmd/main.go
+	env CGO_ENABLED=0 GOARCH=amd64 GOOS=linux go build -ldflags="-s -w" -o bin/bootstrap vpc/main.go
 
 package: build
 	find . -exec touch -t 202007010000.00 {} +
-	cd bin ; zip -FS -X k8svpc.zip k8svpc ; rm k8svpc ; zip -X ../handler.zip ./k8svpc.zip ./handler ; cd ..
+	cd bin ; zip -FS -X k8svpc.zip bootstrap ; rm bootstrap ; mv bootstrap2 bootstrap ; zip -X ../handler.zip ./k8svpc.zip ./bootstrap ; cd ..
 	cp  $(TYPE_NAME_LOWER).json schema.json
 	find . -exec touch -t 202007010000.00 {} +
 	zip -Xr $(TYPE_NAME_LOWER).zip ./handler.zip ./schema.json ./.rpdk-config ./inputs
