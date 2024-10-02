@@ -1,4 +1,9 @@
-# CloudFormation Base EKS
+## Deprecation Notice
+
+:x: This repository is subject to deprecation in Q4 2024. For more details, [please review this announcement](https://github.com/aws-ia/.announcements/issues/1).
+
+
+## CloudFormation Base EKS
 
 This Reference Architecture is designed to be used by AWS Marketplace, as a base for EKS related items. See the SUBMODULE_README.md for how to properly use it.
 
